@@ -1,0 +1,44 @@
+# Configuration locale et secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.aws/
+.codex/
+
+# Sujet de l'épreuve : copie locale, jamais publiée automatiquement
+/docs/sujet/*
+!/docs/sujet/README.md
+
+# JavaScript / TypeScript
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+pytest-cache-files-*/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Données de travail, preuves temporaires et journaux
+/data/
+/tmp/
+coverage/
+playwright-report/
+test-results/
+*.log
+
+# Éditeurs et système
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
