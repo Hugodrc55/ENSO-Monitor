@@ -1,0 +1,180 @@
+# ENSO Monitor
+
+Projet individuel de rattrapage HETIC WEB3, développé progressivement avec une
+validation personnelle à chaque étape. Début : **4 novembre 2026**.
+
+Dépôt GitHub configuré le **8 novembre 2026** :
+[Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor).
+Les commits du Jour 1 sont préparés localement ; le premier push attend
+l'autorisation explicite de publication. Voir [le suivi Git](docs/GIT.md).
+
+## État actuel : Jour 1
+
+Une page React/TypeScript appelle `GET /api/v1/health` et affiche si l'API FastAPI
+répond. Elle gère l'attente, l'échec et une nouvelle tentative.
+
+Aucune observation climatique n'est encore affichée. L'import NOAA, PostgreSQL,
+le graphique et la comparaison historique seront développés aux journées prévues.
+L'indice choisi par l'étudiant est **NOAA ONI, version ERSSTv6** :
+[source prévue](https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/oni/v6/index.php).
+La source n'a pas encore été étudiée ni extraite ; ce travail appartient au Jour 2.
+
+## Prérequis
+
+- Node.js **22 à partir de 22.13**, ou **24 et supérieur**, avec npm ; environnement vérifié : Node 22.18.0, npm 10.9.3. Ce minimum tient compte d'ESLint, en plus de Vite.
+- Python **3.13** et Git ; environnement vérifié : Python 3.13.7, Git 2.50.1.
+- PowerShell sous Windows pour les commandes ci-dessous.
+- Ni PostgreSQL ni Docker ne sont nécessaires au Jour 1.
+
+Les dépendances JavaScript sont figées dans `frontend/package-lock.json`.
+Les versions Python directes sont fixées dans `backend/requirements*.txt`.
+Les dépendances Python transitives sont résolues par pip à l'installation ;
+ces fichiers ne constituent pas un verrouillage complet de l'environnement.
+
+## Installation depuis la racine du dépôt
+
+```powershell
+python -m venv backend/.venv
+.\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
+npm.cmd --prefix frontend ci
+```
+
+L'appel direct à Python dans `.venv` évite de modifier la politique d'exécution
+PowerShell pour activer l'environnement. `npm.cmd` évite le même problème avec
+le script `npm.ps1`. Les bibliothèques PDF utilisées par l'assistant pour lire
+le sujet ne sont pas des dépendances de l'application.
+
+## Lancement local
+
+Ouvrir deux terminaux à la racine du dépôt.
+
+**Terminal 1 — API :**
+
+```powershell
+.\backend\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload --host 127.0.0.1 --port 8000
+```
+
+**Terminal 2 — frontend :**
+
+```powershell
+npm.cmd --prefix frontend run dev
+```
+
+- Application : <http://127.0.0.1:5173>
+- Santé API : <http://127.0.0.1:8000/api/v1/health>
+- Documentation OpenAPI interactive : <http://127.0.0.1:8000/docs>
+
+Arrêt : `Ctrl+C` dans chaque terminal. Les serveurs écoutent uniquement sur la
+machine locale. Si un port est occupé, arrêter le serveur concerné ; Vite utilise
+`strictPort` pour éviter un changement silencieux de port.
+
+## Comment les deux parties communiquent
+
+```text
+Navigateur / React
+    │ GET /api/v1/health sur le port 5173
+    ▼
+Vite : proxy local /api vers 127.0.0.1:8000
+    ▼
+FastAPI : route health() → réponse contrôlée par Pydantic
+    │ {"status":"ok","service":"enso-monitor-api"}
+    ▼
+React : vérification du JSON, puis affichage « Service accessible »
+```
+
+Ce statut vérifie seulement la disponibilité HTTP de l'API. Il ne vérifie ni une
+base de données, ni la fraîcheur des données NOAA. Le navigateur utilise une URL
+relative ; il n'est pas nécessaire d'ouvrir une politique CORS pour ce fonctionnement
+local. En cible, le routage sera documenté avec Caddy au Jour 13.
+
+La requête expire après cinq secondes. Au démontage du composant, elle est annulée
+et sa réponse est ignorée. React StrictMode peut provoquer une première requête
+annulée en développement : le nettoyage de l'effet permet de le gérer.
+
+## Vérifications
+
+```powershell
+Push-Location backend
+.\.venv\Scripts\python.exe -m pytest -q
+Pop-Location
+npm.cmd --prefix frontend run lint
+npm.cmd --prefix frontend run build
+```
+
+`build` lance d'abord la vérification TypeScript stricte, puis Vite produit `frontend/dist/`.
+Pour consulter ce résultat localement, avec l'API toujours lancée :
+
+```powershell
+npm.cmd --prefix frontend run preview
+```
+
+Adresse : <http://127.0.0.1:4173>. Ce serveur sert à vérifier la compilation ; la
+procédure de production sera traitée plus tard.
+
+Avec les deux serveurs lancés, vérifier le chemin direct puis le proxy :
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/api/v1/health
+Invoke-RestMethod http://127.0.0.1:5173/api/v1/health
+```
+
+Dans le navigateur : vérifier l'état accessible, arrêter l'API, cliquer sur
+« Vérifier à nouveau », constater l'état indisponible, relancer l'API et réessayer.
+Les résultats réellement obtenus sont consignés dans [le journal](docs/JOURNAL.md).
+
+Le test de santé du Jour 1 ne couvre pas les trois tests finaux exigés :
+transformation NOAA, route filtrée avec entrée invalide, changement de période
+dans le frontend. Leur réalisation est planifiée dans [PLAN.md](docs/PLAN.md).
+
+## Organisation des fichiers
+
+```text
+frontend/                  React, TypeScript strict, Vite et ESLint
+  src/App.tsx              Affichage et état de la connexion
+  src/api.ts               Appel HTTP et contrôle du JSON reçu
+  src/main.tsx             Montage de React
+  src/styles.css           Présentation minimale
+backend/
+  app/main.py              Application FastAPI, schéma Pydantic et route santé
+  tests/test_health.py     Vérification du contrat HTTP initial
+  requirements*.txt        Dépendances de l'API et des tests
+etl/README.md              Emplacement réservé ; aucune transformation
+docs/
+  EXIGENCES.md             Synthèse des huit pages du sujet officiel
+  PLAN.md                  Préparation progressive et planning officiel prévisionnel
+  DECISIONS.md             Choix, alternatives, limites et vérifications
+  JOURNAL.md               Travail réel, vérifications et apports de l'IA
+  GIT.md                   État du dépôt, revue des commits et publication GitHub
+  sujet/                   Copie locale du PDF officiel, exclue de Git
+AGENTS.md                  Consignes pour les prochaines sessions assistées
+```
+
+## Git, configuration et données
+
+Aucune variable d'environnement ou clé n'est requise aujourd'hui. Ne pas créer
+de `.env` contenant des secrets dans Git. L'exemple de réponse santé est une réponse
+technique, pas une observation scientifique.
+
+Les dépendances, `.venv`, `dist`, données de travail, fichiers temporaires et le PDF
+officiel sont ignorés. Ne pas utiliser `git add -f` pour contourner ces exclusions.
+Voir [les commandes de commits et de premier push](docs/GIT.md).
+
+## Travail personnel et assistance IA
+
+Codex a assisté la lecture du sujet, l'initialisation, le code du Jour 1,
+la documentation et les vérifications. Ces contributions sont détaillées dans
+le journal. La compréhension personnelle et la validation par l'étudiant restent
+à confirmer ; elles ne sont pas déduites du code généré ou des tests réussis.
+
+Petit exercice : modifier le texte d'introduction dans `frontend/src/App.tsx`,
+observer la mise à jour de Vite et lancer `npm.cmd --prefix frontend run build`.
+Puis expliquer pourquoi l'URL utilisée dans `fetchHealth` commence par `/api`.
+
+## Références techniques consultées
+
+- [Démarrer avec Vite](https://vite.dev/guide/) : prérequis et scripts locaux.
+- [Premiers pas FastAPI](https://fastapi.tiangolo.com/tutorial/first-steps/) : application, serveur et documentation OpenAPI.
+- Sujet officiel local, huit pages : voir [sa synthèse](docs/EXIGENCES.md).
+
+La prochaine session est le Jour 2, consacré à la compréhension et à la
+documentation de la source NOAA, uniquement après validation de l'étudiant.
