@@ -29,7 +29,9 @@ pytest-cache-files-*/
 htmlcov/
 
 # Données de travail, preuves temporaires et journaux
-/data/
+# Seules les sources brutes documentées de data/raw/ sont versionnées (décision D11).
+/data/*
+!/data/raw/
 /tmp/
 coverage/
 playwright-report/

@@ -1,3 +1,6 @@
 * text=auto eol=lf
 *.pdf binary
 *.png binary
+# Fichiers NOAA bruts : aucun changement de fin de ligne ni contrôle d'espaces,
+# afin de conserver les octets téléchargés et leur empreinte SHA-256.
+data/raw/*.txt -text -whitespace
