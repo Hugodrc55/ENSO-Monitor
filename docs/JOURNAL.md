@@ -169,3 +169,119 @@ créé les commits locaux et actualisé cette documentation. Cela ne démontre p
 la compréhension personnelle de l'étudiant. Suite : obtenir l'accord pour
 publier les commits du Jour 1, pousser, puis comparer le SHA local au SHA distant.
 L'autorisation de commencer le Jour 2 reste distincte.
+
+## 9 novembre 2026 — Jour 2 : source NOAA ONI ERSSTv6
+
+### Demande et périmètre
+
+L'étudiant a autorisé le Jour 2 uniquement : étude de la source NOAA, téléchargement
+du fichier authentique et documentation. À partir de ce jour, l'assistance est
+assurée par Claude (Claude Code), qui reprend le projet existant et son historique.
+Exclus : PostgreSQL, SQLAlchemy, Alembic, API d'observations, graphiques,
+comparaison d'épisodes et Docker.
+
+### Reprise du Jour 1
+
+- `git status` propre sur `main`, quatre commits du 8 novembre, aucun fichier manquant.
+- Aucune branche amont, et `git ls-remote origin refs/heads/main` ne renvoie rien :
+  **le Jour 1 n'a jamais été publié** sur GitHub.
+- Sujet officiel relu en entier (8 pages). L'outil de lecture PDF exigeait
+  `poppler`, absent : la lecture s'est faite sur les rendus PNG des 8 pages produits
+  au Jour 1 dans `tmp/pdfs/`. Le PDF déclare bien 8 pages.
+- Le Jour 1 fonctionne toujours : voir les vérifications ci-dessous.
+
+### Travail réalisé
+
+- Lecture des pages NOAA ONI v6, ONI v5, RONI, de l'index `/data/indices/` et du
+  communiqué NWS 26-05 (13 janvier 2026).
+- Téléchargement de `oni.ascii.txt` le 9 novembre 2026 à 13:42 UTC, puis copie
+  identique dans `data/raw/noaa-cpc_oni-ersstv6_2026-11-09.txt`, avec `SHA256SUMS`
+  et un README de provenance.
+- Téléchargement temporaire, hors du dépôt, du fichier mensuel `detrend.nino34.ascii.txt`
+  pour vérifier les définitions de `TOTAL`, `ANOM` et `YR`.
+- `.gitignore` : seul `data/raw/` est versionné dans `data/`. `.gitattributes` :
+  aucune conversion de fin de ligne pour les fichiers bruts.
+- Création de `docs/DONNEES_NOAA.md`. Mise à jour d'`etl/README.md`, du README,
+  du plan, des décisions (D10 à D14) et du guide Git.
+
+### Constats sur la source
+
+- `oni.ascii.txt` est bien la série **ERSSTv6** : l'index NOAA l'indique, et les
+  valeurs concordent avec le tableau v6 (921/921), pas avec le v5 (495 écarts > 0,05).
+- Depuis le **1er février 2026**, la NOAA utilise la **RONI** pour la surveillance
+  officielle. L'ONI reste mis à jour. Ce point est soumis à la reconfirmation de
+  l'étudiant (D13).
+- `YR` est l'année du **mois central** de la saison (hypothèse vérifiée, l'autre rejetée).
+- La page ONI v6 mentionne « ERSSTv5 » dans une phrase sur le filtrage, alors que
+  le reste parle d'ERSSTv6 : incohérence signalée, sans interprétation.
+
+### Difficultés et corrections
+
+- Un `cd backend` dans une commande a changé le répertoire courant : la commande
+  `npm --prefix frontend` suivante a échoué (`ENOENT`) dans `backend/`. Relance
+  depuis la racine ; aucun fichier n'a été modifié.
+- La console Windows (cp1252) a provoqué une `UnicodeEncodeError` à l'affichage
+  des pages NOAA. `python -I` ignore `PYTHONIOENCODING` : utilisation de `-X utf8`.
+- Bug dans un script de contrôle : les fins de ligne étaient comptées à 0, à cause
+  d'un échappement incorrect. Après correction : 922 LF, aucun CR.
+- Le sous-agent de lecture web n'a pas pu extraire le texte du PDF NWS 26-05. Le
+  texte a été extrait par décompression des flux du PDF avec la bibliothèque
+  standard. La première page étant répartie sur plusieurs flux, il a fallu les
+  concaténer. Un heredoc altérait les antislashs : le code a été placé dans un fichier.
+- Relecture critique de `DONNEES_NOAA.md` avant commit :
+  - suppression d'une explication non tirée des sources (réchauffement des tropiques) ;
+  - le seuil, formulé différemment selon les pages NOAA, est maintenant signalé ;
+  - l'exemple d'arrondi est remplacé par un cas réel (`MAM 2026` : `0.46`, affiché 0,5).
+- L'horloge locale indiquait 13:42:23 UTC, contre 13:42:35 GMT pour le serveur
+  NOAA : les deux valeurs sont consignées.
+
+### Vérifications réelles
+
+| Vérification exécutée | Résultat observé |
+| --- | --- |
+| Pytest depuis `backend` (Python de `.venv`, cache désactivé) | **1 passed** en 2,47 s |
+| `pip check` | `No broken requirements found.` |
+| `npm.cmd --prefix frontend run lint` | Code de sortie 0 |
+| `npm.cmd --prefix frontend run build` | Typage strict et Vite réussis ; 17 modules transformés |
+| Uvicorn lancé, `GET /api/v1/health` | HTTP 200, `{"status":"ok","service":"enso-monitor-api"}` ; OpenAPI : `/api/v1/health` seule |
+| Arrêt de l'API puis nouvel appel | Connexion refusée, comme attendu |
+| Téléchargement `oni.ascii.txt` | HTTP 200, `text/plain; charset=utf-8`, 23 050 octets, aucune redirection, `Last-Modified` 3 novembre 2026 |
+| Contenu | ASCII, 922 lignes LF, en-tête `SEAS YR TOTAL ANOM`, 921 lignes conformes, pas de HTML |
+| Doublons, valeurs manquantes et sentinelles, continuité | Aucun doublon ni valeur manquante ; séquence continue de DJF 1950 à ASO 2026 |
+| Comparaison avec les tableaux NOAA v6 et v5 | v6 : 921/921 à ≤ 0,05 ; v5 : 495 écarts > 0,05 |
+| Recalcul depuis le fichier mensuel | `ANOM` : 919/921, `TOTAL` : 920/921 à 0,01 près (écart max 0,013) |
+| Copie dans `data/raw/` | `cmp` identique ; `sha256sum -c SHA256SUMS` : OK |
+| `git check-ignore -v` et `git check-attr` | PDF, `.venv`, `node_modules`, `tmp/`, `.env` et `data/processed/` exclus ; `data/raw/` suivi ; `text` désactivé sur le fichier brut |
+
+Non effectué ce jour : audit npm, contrôle dans un navigateur, appel via le proxy
+Vite. Les résultats du 4 novembre sur ces points ne sont pas présentés comme revérifiés.
+Les scripts de contrôle étaient temporaires, hors du dépôt (D14). Aucun test
+automatisé de données n'existe encore : il est prévu au Jour 5, et la
+transformation au Jour 3.
+
+### Git
+
+Trois commits locaux, à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
+
+1. `chore: ajouter les données NOAA ONI brutes et leur provenance`
+2. `docs: documenter la source scientifique NOAA ONI`
+3. `docs: actualiser le suivi du jour 2`
+
+Aucun push, aucune réécriture d'historique. La publication attend l'autorisation
+explicite de l'étudiant.
+
+### Contributions de l'IA
+
+Claude a inspecté le projet, relancé les vérifications du Jour 1, lu les sources
+NOAA, téléchargé et contrôlé les fichiers, écrit les scripts temporaires, rédigé
+la documentation et préparé les commits. Cela ne démontre ni la compréhension
+personnelle de l'étudiant, ni sa validation de D10 à D14 ; elles restent à
+confirmer, en particulier la reconfirmation de l'ONI face à la RONI (D13).
+
+Exercice proposé : retrouver la ligne `NDJ 1997`, indiquer ses trois mois et sa
+date de référence, puis vérifier l'empreinte du fichier brut avec `Get-FileHash`.
+
+### Suite proposée, non commencée
+
+Jour 3 : transformation du fichier brut avec Pandas et NumPy, selon le plan de
+`DONNEES_NOAA.md`. À commencer uniquement après l'accord de l'étudiant.

@@ -1,6 +1,9 @@
-# Décisions initiales — 4 novembre 2026
+# Décisions du projet
 
-Ces décisions sont proposées ou mises en œuvre avec l'aide de Codex, dans le
+- D01 à D09 : décisions initiales du **4 novembre 2026** (Jour 1), avec l'aide de Codex.
+- D10 à D14 : décisions du **9 novembre 2026** (Jour 2, données NOAA), avec l'aide de Claude.
+
+Ces décisions sont proposées ou mises en œuvre avec l'aide de l'IA, dans le
 périmètre demandé. Leur compréhension et leur validation personnelles par l'étudiant
 restent à confirmer. Aucune validation orale n'est supposée.
 
@@ -84,3 +87,48 @@ restent à confirmer. Aucune validation orale n'est supposée.
 - **Avantage** : typecheck, lint et test backend exécutables sans les avertissements de dépréciation initiaux.
 - **Limite constatée** : `npm audit` signale 11 alertes modérées dans la chaîne de développement, à partir de `minimatch <11.0.1` ([avis](https://github.com/advisories/GHSA-g3hv-75wg-m249)). Le rapport propose notamment des changements majeurs ou des retours à de très anciennes versions ; aucune correction forcée n'a été appliquée. Suivre une mise à jour compatible de l'outillage.
 - **Vérification** : lint et build réussis ; `pip check` sans incompatibilité ; `npm audit --omit=dev` signale zéro vulnérabilité. Cela ne remplace pas un audit de sécurité complet.
+
+## D10 — Fichier source `oni.ascii.txt`, série ERSSTv6
+
+- **Besoin** : obtenir la série choisie en D02 sous une forme lisible par un script, avec une provenance prouvée.
+- **Options** : recopier le tableau HTML de la page v6 (une décimale) ; fichier texte `oni.ascii.txt` (deux décimales) ; fichier mensuel `detrend.nino34.ascii.txt`, puis recalcul des moyennes.
+- **Choix** : `oni.ascii.txt`, la série saisonnière publiée par la NOAA, utilisée telle quelle.
+- **Avantage** : colonnes stables, deux décimales, aucun recalcul de notre part. Le lien officiel figure sous l'intitulé « Seasonal ERSSTv6 (centered base periods) "Oceanic Niño Index" ».
+- **Limite** : le fichier ne documente ni ses colonnes ni son unité, et son nom n'indique pas la version. La même URL peut donc servir une autre version plus tard.
+- **Vérification** : intitulé de la page d'index NOAA. Les 921 valeurs sont à 0,05 au plus du tableau v6, contre 495 écarts supérieurs à 0,05 avec le v5. Le recalcul depuis le fichier mensuel retrouve 919 valeurs sur 921 à 0,01 près. Détails : [DONNEES_NOAA.md](DONNEES_NOAA.md).
+
+## D11 — Copie brute versionnée dans `data/raw/`
+
+- **Besoin** : prouver quelles données ont été utilisées, alors que la NOAA révise ses valeurs.
+- **Options** : télécharger à chaque exécution sans conserver ; conserver hors de Git ; versionner une copie datée.
+- **Choix** : versionner `data/raw/noaa-cpc_oni-ersstv6_2026-11-09.txt` (23 Ko) avec `SHA256SUMS` et un README de provenance. `.gitignore` n'exclut plus `data/raw/`, mais les autres sous-dossiers de `data/` restent exclus. `.gitattributes` empêche la conversion des fins de ligne de ces fichiers.
+- **Avantage** : résultats reproductibles pour le jury, même hors ligne ; l'empreinte détecte toute modification.
+- **Limite** : la copie vieillit, et chaque nouvelle extraction ajoute un fichier. Raisonnable pour 23 Ko, pas pour de gros jeux de données. Les conditions de réutilisation n'ont pas été vérifiées aujourd'hui ; la source NOAA est citée.
+- **Vérification** : `sha256sum -c SHA256SUMS`, `git check-attr`, empreinte du fichier relu depuis le commit.
+
+## D12 — Dater chaque saison par son mois central
+
+- **Besoin** : placer chaque saison sur un axe du temps et la filtrer par période, sans perdre la notation NOAA.
+- **Options** : premier mois, dernier mois ou mois central de la saison ; texte seul (`DJF 1950`).
+- **Choix** : `reference_month` = premier jour du mois central. `SEAS` et `YR` sont conservés ; le début et la fin de période sont dérivés pour l'affichage.
+- **Avantage** : convention adaptée à une moyenne glissante centrée. Comme `YR` est l'année du mois central, la conversion ne demande aucune exception pour DJF et NDJ.
+- **Limite** : une date au 1er du mois est une convention, alors que la valeur couvre trois mois. L'interface devra l'indiquer.
+- **Vérification** : l'hypothèse « année du mois central » est confirmée sur 919 saisons sur 921 avec le fichier mensuel. L'hypothèse « année du premier mois » est rejetée (écarts jusqu'à 3,72 °C). Implémentation et tests prévus au Jour 3.
+
+## D13 — Conserver l'ONI alors que la RONI est officielle
+
+- **Besoin** : rester cohérent avec le choix de l'étudiant (D02) en tenant compte du changement annoncé par la NOAA.
+- **Options** : conserver l'ONI ; passer à la RONI ; utiliser les deux (inutile : le sujet demande une seule série).
+- **Choix proposé** : conserver l'ONI ERSSTv6, autorisé par le sujet et toujours mis à jour par la NOAA. L'étudiant doit **reconfirmer** ce choix en connaissant ce changement ; sa confirmation n'est pas supposée.
+- **Avantage** : série historique longue et plan inchangé.
+- **Limite** : l'ONI n'est plus l'indice officiel de surveillance depuis le 1er février 2026, et certaines saisons sont classées différemment (DJF 2026 : ONI −0,4 ; RONI −0,9). L'interface et le dossier devront le dire.
+- **Vérification** : communiqué NWS 26-05 et pages ONI v6 et RONI consultés le 9 novembre ; nom de série affiché sans ambiguïté.
+
+## D14 — Aucune nouvelle dépendance au Jour 2
+
+- **Besoin** : contrôler le fichier sans anticiper l'ETL.
+- **Options** : installer Pandas dès aujourd'hui, ou utiliser des scripts temporaires avec la bibliothèque standard Python.
+- **Choix** : scripts temporaires hors du dépôt (`hashlib`, `re`, `decimal`). Pandas et NumPy seront introduits et justifiés au Jour 3.
+- **Avantage** : aucun code non expliqué ni non testé dans le dépôt ; périmètre du Jour 2 respecté.
+- **Limite** : ces contrôles ne sont pas rejouables depuis le dépôt. Ils le deviendront au Jour 3, sous forme de code et de tests.
+- **Vérification** : aucune dépendance ni aucun fichier de code applicatif modifiés (`git status`).

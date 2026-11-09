@@ -1,14 +1,16 @@
 # Git et publication GitHub
 
-## État au 8 novembre 2026
+## État au 9 novembre 2026
 
 - Dépôt fourni par l'étudiant : <https://github.com/Hugodrc55/ENSO-Monitor>.
 - Distant `origin` : `https://github.com/Hugodrc55/ENSO-Monitor.git`.
-- Branche locale : `main`. Le dépôt distant était vide lors de la consultation.
-- Le Jour 1, développé le 4 novembre, est organisé en commits locaux le 8 novembre.
-- **Aucun push effectué.** Le contrôle automatique a refusé la publication faute
-  d'autorisation explicite d'envoyer ces fichiers à cette destination. L'accord
-  de l'étudiant est demandé avant toute nouvelle tentative.
+- Branche locale : `main`, sans branche amont configurée.
+- Le Jour 1, développé le 4 novembre, a été organisé en commits locaux le 8 novembre.
+- Le Jour 2 a été réalisé et commité localement le 9 novembre.
+- **Aucun push effectué.** Le 8 novembre, le contrôle automatique a refusé la
+  publication faute d'autorisation explicite. Le 9 novembre,
+  `git ls-remote origin refs/heads/main` ne renvoie toujours rien : le dépôt
+  distant est vide. Le premier push enverra donc les commits des Jours 1 et 2.
 
 ## Commits du Jour 1
 
@@ -22,6 +24,32 @@
 Ces commits correspondent au travail réel du Jour 1 et à son suivi. Ils ne
 représentent pas quatre journées différentes et ne sont pas antidatés.
 L'identité Git préexistante a été conservée.
+
+## Commits du Jour 2 (9 novembre 2026)
+
+| Ensemble cohérent | Fichiers | Message |
+| --- | --- | --- |
+| Fichier NOAA brut, empreinte, provenance et règles Git | `.gitignore`, `.gitattributes`, `data/raw/*` | `chore: ajouter les données NOAA ONI brutes et leur provenance` |
+| Documentation scientifique | `docs/DONNEES_NOAA.md`, `etl/README.md` | `docs: documenter la source scientifique NOAA ONI` |
+| Suivi du projet | `README.md`, `docs/PLAN.md`, `docs/DECISIONS.md`, `docs/JOURNAL.md`, `docs/GIT.md` | `docs: actualiser le suivi du jour 2` |
+
+Ils sont créés à la date réelle de la session, sans modification des dates Git.
+
+Revue des commits du Jour 2 :
+
+```powershell
+git log --oneline -3
+git show --stat HEAD~2 HEAD~1 HEAD
+git diff 83b875e HEAD
+```
+
+Contrôle du fichier brut tel qu'il est enregistré dans Git (Git Bash) :
+
+```bash
+git show HEAD:data/raw/noaa-cpc_oni-ersstv6_2026-11-09.txt | sha256sum
+```
+
+L'empreinte doit être `118c563331335c8649cdc2677e6be7ae89d1259d901345fcddbc2857af280f7f`.
 
 ## Consulter le travail avant publication
 
@@ -53,7 +81,9 @@ git push -u origin main
 ```
 
 Cette commande envoie les commits et les fichiers suivis vers GitHub, où leur
-accès dépend de la visibilité et des permissions du dépôt. Git peut demander une
+accès dépend de la visibilité et des permissions du dépôt. Depuis le Jour 2,
+cela inclut la copie brute du fichier NOAA dans `data/raw/`. Le PDF du sujet
+reste exclu. Git peut demander une
 authentification. Ne jamais placer un jeton dans l'URL ou dans un fichier du projet.
 
 Si le distant a reçu d'autres commits entre-temps, examiner l'historique avant de

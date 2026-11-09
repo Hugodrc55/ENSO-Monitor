@@ -5,26 +5,33 @@ validation personnelle à chaque étape. Début : **4 novembre 2026**.
 
 Dépôt GitHub configuré le **8 novembre 2026** :
 [Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor).
-Les commits du Jour 1 sont préparés localement ; le premier push attend
-l'autorisation explicite de publication. Voir [le suivi Git](docs/GIT.md).
+Les commits des Jours 1 et 2 sont locaux. Au 9 novembre 2026, le dépôt distant
+est encore vide : le premier push attend l'autorisation explicite de publication.
+Voir [le suivi Git](docs/GIT.md).
 
-## État actuel : Jour 1
+## État actuel : Jour 2
 
-Une page React/TypeScript appelle `GET /api/v1/health` et affiche si l'API FastAPI
-répond. Elle gère l'attente, l'échec et une nouvelle tentative.
+**Jour 1** : une page React/TypeScript appelle `GET /api/v1/health` et affiche
+si l'API FastAPI répond. Elle gère l'attente, l'échec et une nouvelle tentative.
 
-Aucune observation climatique n'est encore affichée. L'import NOAA, PostgreSQL,
-le graphique et la comparaison historique seront développés aux journées prévues.
-L'indice choisi par l'étudiant est **NOAA ONI, version ERSSTv6** :
-[source prévue](https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/oni/v6/index.php).
-La source n'a pas encore été étudiée ni extraite ; ce travail appartient au Jour 2.
+**Jour 2** : la source scientifique a été étudiée et documentée. L'indice choisi
+par l'étudiant est **NOAA ONI, version ERSSTv6**
+([page NOAA](https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/oni/v6/index.php)).
+Le fichier authentique `oni.ascii.txt` a été téléchargé le 9 novembre 2026 dans
+[`data/raw/`](data/raw/README.md), avec son empreinte SHA-256. Il couvre 921
+saisons, de DJF 1950 à ASO 2026. Format, unités, datation des saisons, différence
+ONI/RONI et limites : voir [DONNEES_NOAA.md](docs/DONNEES_NOAA.md).
+
+Aucune observation climatique n'est encore affichée ni importée. La transformation
+(Jour 3), PostgreSQL, le graphique et la comparaison historique seront développés
+aux journées prévues.
 
 ## Prérequis
 
-- Node.js **22 à partir de 22.13**, ou **24 et supérieur**, avec npm ; environnement vérifié : Node 22.18.0, npm 10.9.3. Ce minimum tient compte d'ESLint, en plus de Vite.
-- Python **3.13** et Git ; environnement vérifié : Python 3.13.7, Git 2.50.1.
+- Node.js **22 à partir de 22.13**, ou **24 et supérieur**, avec npm ; environnement vérifié le 4 novembre : Node 22.18.0, npm 10.9.3 ; le 9 novembre : Node 22.23.4, npm 10.9.9. Ce minimum tient compte d'ESLint, en plus de Vite.
+- Python **3.13** et Git ; environnement vérifié le 4 novembre : Python 3.13.7, Git 2.50.1 ; le 9 novembre : Python 3.13.17, Git 2.56.0.
 - PowerShell sous Windows pour les commandes ci-dessous.
-- Ni PostgreSQL ni Docker ne sont nécessaires au Jour 1.
+- Ni PostgreSQL ni Docker ne sont nécessaires aux Jours 1 et 2.
 
 Les dépendances JavaScript sont figées dans `frontend/package-lock.json`.
 Les versions Python directes sont fixées dans `backend/requirements*.txt`.
@@ -139,7 +146,9 @@ backend/
   tests/test_health.py     Vérification du contrat HTTP initial
   requirements*.txt        Dépendances de l'API et des tests
 etl/README.md              Emplacement réservé ; aucune transformation
+data/raw/                  Fichier NOAA brut daté, empreinte SHA-256 et provenance
 docs/
+  DONNEES_NOAA.md          Source ONI ERSSTv6 : colonnes, saisons, limites, plan du Jour 3
   EXIGENCES.md             Synthèse des huit pages du sujet officiel
   PLAN.md                  Préparation progressive et planning officiel prévisionnel
   DECISIONS.md             Choix, alternatives, limites et vérifications
@@ -157,24 +166,34 @@ technique, pas une observation scientifique.
 
 Les dépendances, `.venv`, `dist`, données de travail, fichiers temporaires et le PDF
 officiel sont ignorés. Ne pas utiliser `git add -f` pour contourner ces exclusions.
+Seul `data/raw/` est versionné dans `data/` : il contient la source NOAA brute,
+jamais modifiée à la main (décision D11). Les futurs fichiers produits dans
+`data/` restent exclus.
 Voir [les commandes de commits et de premier push](docs/GIT.md).
 
 ## Travail personnel et assistance IA
 
 Codex a assisté la lecture du sujet, l'initialisation, le code du Jour 1,
-la documentation et les vérifications. Ces contributions sont détaillées dans
-le journal. La compréhension personnelle et la validation par l'étudiant restent
-à confirmer ; elles ne sont pas déduites du code généré ou des tests réussis.
+la documentation et les vérifications. Au Jour 2, Claude a assisté la lecture
+des sources NOAA, le téléchargement, les contrôles du fichier et la documentation.
+Ces contributions sont détaillées dans le journal. La compréhension personnelle
+et la validation par l'étudiant restent à confirmer ; elles ne sont pas déduites
+du code généré ou des tests réussis.
 
-Petit exercice : modifier le texte d'introduction dans `frontend/src/App.tsx`,
+Exercice du Jour 1 : modifier le texte d'introduction dans `frontend/src/App.tsx`,
 observer la mise à jour de Vite et lancer `npm.cmd --prefix frontend run build`.
 Puis expliquer pourquoi l'URL utilisée dans `fetchHealth` commence par `/api`.
+
+Exercice du Jour 2 : retrouver dans `data/raw/` la ligne `NDJ 1997`. Indiquer
+les trois mois qu'elle couvre et la date `reference_month` prévue par D12. Puis
+recalculer l'empreinte avec `Get-FileHash` et la comparer à `SHA256SUMS`.
 
 ## Références techniques consultées
 
 - [Démarrer avec Vite](https://vite.dev/guide/) : prérequis et scripts locaux.
 - [Premiers pas FastAPI](https://fastapi.tiangolo.com/tutorial/first-steps/) : application, serveur et documentation OpenAPI.
 - Sujet officiel local, huit pages : voir [sa synthèse](docs/EXIGENCES.md).
+- Sources NOAA consultées le 9 novembre 2026 : voir [la liste](docs/DONNEES_NOAA.md#sources-consultées-le-9-novembre-2026).
 
-La prochaine session est le Jour 2, consacré à la compréhension et à la
-documentation de la source NOAA, uniquement après validation de l'étudiant.
+La prochaine session est le Jour 3, consacré à la transformation du fichier
+avec Pandas et NumPy, uniquement après validation de l'étudiant.

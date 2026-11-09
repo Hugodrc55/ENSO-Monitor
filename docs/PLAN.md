@@ -8,8 +8,8 @@ sera expliqué dans le journal, et chaque nouvelle étape attendra l'accord de l
 | Jour | Objectif et critère de sortie prévu | Statut |
 | --- | --- | --- |
 | 1 | Dépôt Git, documentation, React strict, santé FastAPI, connexion vérifiée | Réalisé avec assistance IA ; validation personnelle attendue |
-| 2 | Étudier NOAA ONI ERSSTv6 : format, unité, périodes, source, version et limites | À autoriser |
-| 3 | Transformer la série avec Python, Pandas et NumPy ; expliquer le traitement | Non commencé |
+| 2 | Étudier NOAA ONI ERSSTv6 : format, unité, périodes, source, version et limites | Réalisé le 9 novembre avec assistance IA ; validation personnelle attendue |
+| 3 | Transformer la série avec Python, Pandas et NumPy (contrôles, dates du mois central, provenance) ; expliquer le traitement | À autoriser |
 | 4 | Modéliser PostgreSQL, contraintes SQL, SQLAlchemy et migrations Alembic | Non commencé |
 | 5 | Import authentique, doublons, provenance, date d'extraction et test ETL | Non commencé |
 | 6 | Exposer les observations avec FastAPI et documenter le contrat OpenAPI | Non commencé |
@@ -48,8 +48,16 @@ la préparation réelle sur environ un mois.
 - Dépasser le dossier : réserver la couverture et le sommaire dans les 15 pages.
 - Installation sous Windows : utiliser un environnement Python isolé et `npm.cmd`.
 
-## Prochaine session : Jour 2 uniquement
+## Risques identifiés au Jour 2
 
-Après validation : consulter la source NOAA, décrire son format, la signification
-des colonnes, l'unité, les périodes et les limites, puis consigner les décisions.
-Pas de script d'import, de schéma SQL ni de graphique pendant cette étude.
+- L'ONI n'est plus l'indice officiel de la NOAA depuis le 1er février 2026, au profit de la RONI : nommer la série « ONI ERSSTv6 » partout et justifier le choix (décision D13).
+- Valeurs récentes révisables jusqu'à deux mois, et versions ERSST différentes : extraction datée, empreinte SHA-256, nouveau fichier à chaque téléchargement (D11).
+- Saisons DJF et NDJ à cheval sur deux années : règle du mois central, vérifiée (D12).
+- Arrondi trompeur au seuil de ±0,5 °C : comparer les valeurs à deux décimales du fichier.
+
+## Prochaine session : Jour 3 uniquement
+
+Après validation : transformer le fichier brut avec Pandas et NumPy selon le plan
+de [DONNEES_NOAA.md](DONNEES_NOAA.md#10-plan-de-transformation-prévu-pour-le-jour-3).
+Les contrôles, la datation et la provenance seront testés. Pas de PostgreSQL,
+de SQLAlchemy, d'Alembic, d'API d'observations ni de graphique pendant cette étape.
