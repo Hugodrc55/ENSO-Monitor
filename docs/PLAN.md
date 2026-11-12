@@ -9,9 +9,9 @@ sera expliqué dans le journal, et chaque nouvelle étape attendra l'accord de l
 | --- | --- | --- |
 | 1 | Dépôt Git, documentation, React strict, santé FastAPI, connexion vérifiée | Réalisé avec assistance IA ; validation personnelle attendue |
 | 2 | Étudier NOAA ONI ERSSTv6 : format, unité, périodes, source, version et limites | Réalisé le 9 novembre avec assistance IA ; validation personnelle attendue |
-| 3 | Transformer la série avec Python, Pandas et NumPy (contrôles, dates du mois central, provenance) ; expliquer le traitement | À autoriser |
+| 3 | Transformer la série avec Python, Pandas et NumPy (contrôles, doublons, dates du mois central) ; premier test de données | Réalisé le 12 novembre avec assistance IA : transformation et 28 tests Pytest |
 | 4 | Modéliser PostgreSQL, contraintes SQL, SQLAlchemy et migrations Alembic | Non commencé |
-| 5 | Import authentique, doublons, provenance, date d'extraction et test ETL | Non commencé |
+| 5 | Import authentique en base, provenance (source, import, date d'extraction), test d'import | Non commencé |
 | 6 | Exposer les observations avec FastAPI et documenter le contrat OpenAPI | Non commencé |
 | 7 | Filtres temporels, validations et test API sur période + entrée invalide | Non commencé |
 | 8 | Construire l'interface de consultation et brancher les observations | Non commencé |
@@ -55,9 +55,15 @@ la préparation réelle sur environ un mois.
 - Saisons DJF et NDJ à cheval sur deux années : règle du mois central, vérifiée (D12).
 - Arrondi trompeur au seuil de ±0,5 °C : comparer les valeurs à deux décimales du fichier.
 
-## Prochaine session : Jour 3 uniquement
+## Risques identifiés lors de la transformation (12 novembre)
 
-Après validation : transformer le fichier brut avec Pandas et NumPy selon le plan
-de [DONNEES_NOAA.md](DONNEES_NOAA.md#10-plan-de-transformation-prévu-pour-le-jour-3).
-Les contrôles, la datation et la provenance seront testés. Pas de PostgreSQL,
-de SQLAlchemy, d'Alembic, d'API d'observations ni de graphique pendant cette étape.
+- Avec ses réglages par défaut, pandas décale les colonnes sans erreur si une ligne a un champ de trop : lecture en texte et en-tête contrôlé (D16).
+- Une saison publiée deux fois avec des valeurs différentes : aucune version retenue, commande en échec (D17).
+- Une valeur impossible (code de remplissage, erreur d'unité) acceptée comme mesure : bornes physiques larges (D18).
+- Le chargement en base devra partager le modèle de données avec l'API : organisation de `etl/` à réexaminer (D15).
+
+## Étape suivante
+
+Modèle PostgreSQL, contraintes SQL, SQLAlchemy et migrations Alembic (ligne 4 du
+tableau). Le schéma s'appuiera sur le fichier produit par la transformation,
+décrit dans [DONNEES_NOAA.md](DONNEES_NOAA.md#10-transformation-du-fichier-etl).

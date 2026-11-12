@@ -295,3 +295,116 @@ Jour 3 : transformation du fichier brut avec Pandas et NumPy, selon le plan de
 - Vérification : `git rev-parse HEAD` et `git ls-remote origin refs/heads/main`
   renvoient le même SHA, `6c4d9fb`. `main` suit désormais `origin/main`.
 - Aucun fichier du projet n'a été modifié ce jour-là.
+
+## 12 novembre 2026 — Transformation des observations ONI
+
+### Périmètre
+
+Session consacrée à la lecture, la validation et la transformation du fichier
+NOAA brut en observations datées, avec un premier test automatisé de données.
+
+Exclus : modèle PostgreSQL, migrations, insertion en base, routes d'observations,
+graphiques, comparaison d'épisodes et Docker.
+
+### État de départ
+
+- `main` propre et synchronisée avec `origin/main` (`6c4d9fb`).
+- Fichier brut présent ; `sha256sum -c SHA256SUMS` : OK.
+- Sujet relu (8 pages, rendus PNG de `tmp/pdfs/`). Exigences retenues :
+  - ETL : « imports fiables, gestion des doublons, traçabilité NOAA » ;
+  - test de données : vérifier une transformation « (ex. doublons ou date invalide) ».
+- `README.md` et `docs/GIT.md` décrivaient encore un dépôt distant vide : corrigés
+  dans un commit séparé, avec l'entrée du 10 novembre.
+
+### Travail réalisé
+
+- `etl/transform_oni.py` enchaîne les étapes du traitement :
+  - contrôle SHA-256 ;
+  - lecture pandas en texte ;
+  - validation ligne par ligne ;
+  - doublons ;
+  - datation par le mois central ;
+  - signalement des trous ;
+  - export CSV.
+
+  Commande : `python -m etl.transform_oni --input … --output …`.
+- `etl/tests/test_transform_oni.py` : 16 fonctions de test, 28 cas. Les petits
+  fichiers de test ont des valeurs fictives, déclarées comme telles ; un test
+  utilise le fichier NOAA réel.
+- `etl/requirements.txt` (pandas 3.1.1, NumPy 2.5.4) et `etl/requirements-dev.txt`
+  (pytest 9.2.0). Environnement `etl/.venv`, ignoré par Git.
+- Documentation : section 10 de `DONNEES_NOAA.md`, `etl/README.md`, README, plan,
+  décisions D15 à D18, mise à jour de D12.
+
+### Constats et corrections
+
+- **Comportement de pandas, testé avant d'écrire le module** sur de petits
+  fichiers mal formés :
+  - avec l'en-tête automatique, une ligne comportant un champ de plus décale
+    toutes les colonnes sans erreur ;
+  - avec `index_col=False`, la ligne est tronquée avec un simple avertissement.
+
+  D'où la lecture sans en-tête automatique et l'en-tête contrôlé (D16).
+- **Conversion numérique** : `pd.to_numeric` accepte `inf` et `1e3`. D'où le
+  contrôle `np.isfinite` et les bornes physiques (D18).
+- **Codes de valeur manquante** : aucun n'est défini sur les pages NOAA ONI v6,
+  RONI et index enregistrées le 9 novembre, ni présent dans le fichier mensuel.
+  Aucun code n'est donc interprété.
+- **Doublons** : l'approche du 9 novembre (refus du fichier au premier doublon)
+  est remplacée par la distinction entre copies et contradictions (D17), comme
+  le demande le cahier des charges de la session.
+- **Corrections après relecture du code** :
+  - un accord grammatical dans le bilan (« 1 doublons ») ;
+  - deux lignes de plus de 99 caractères ;
+  - un motif de rejet d'année trop étroit (le format invalide n'était pas mentionné).
+- **Documentation** : deux références (documentation pandas et Pytest) ont été
+  retirées avant commit, car elles n'avaient pas été consultées pendant la session.
+- **Affichage** : dans Git Bash, les accents des messages s'affichent mal (console
+  non UTF-8), mais correctement sous PowerShell. Le code n'est pas en cause.
+
+### Vérifications réelles
+
+| Vérification exécutée | Résultat observé |
+| --- | --- |
+| `python -m pytest etl/tests -W error` (Python de `etl/.venv`) | **28 passed** en 0,79 s |
+| Transformation du fichier réel, avertissements traités comme des erreurs | 921 lignes lues, 921 valides, 0 doublon, 0 rejet, 0 trou ; code de sortie 0 |
+| Contrôle indépendant du CSV (script temporaire, bibliothèque standard) | 921 lignes ; chaque valeur égale au brut (comparaison décimale exacte) ; dates conformes à D12 ; tri strict ; aucun CR ; 0 erreur |
+| Deux exécutions successives | CSV identiques octet pour octet (SHA-256 `4b1f7a77…`) |
+| Erreurs volontaires introduites puis retirées : mois central décalé, dernière copie gardée, bornes à ±100 | 11, 1 et 1 tests en échec ; module restauré à l'identique (empreinte vérifiée), 28 passed |
+| Commande avec fichier absent, page HTML, fichier fictif à doublons et saison inconnue, sans argument | Messages explicites ; codes de sortie 1, 1, 1 et 2 |
+| Environnement neuf installé depuis `etl/requirements-dev.txt` | 28 passed |
+| `pip check` dans `etl/.venv` | Aucun conflit |
+| Pytest de l'API | 1 passed |
+| `git status` | `data/processed/` et `etl/.venv` ignorés |
+
+Non effectué ce jour : lint et build du frontend (aucun fichier frontend modifié),
+contrôle dans un navigateur, audit npm.
+
+### Git
+
+Quatre commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
+
+1. `docs: consigner la première publication GitHub`
+2. `feat: ajouter la transformation des observations ONI`
+3. `test: ajouter les tests de transformation ONI`
+4. `docs: documenter le pipeline de transformation`
+
+### Contributions de l'IA
+
+**Fourni par l'étudiant** : le cahier des charges de la session, c'est-à-dire
+les étapes, les contrôles attendus, la règle du mois central, la commande et les
+cas de test.
+
+**Réalisé par Claude** :
+- vérification de l'état du projet ;
+- essais du comportement de pandas ;
+- écriture du module de transformation, des tests et de cette documentation ;
+- installation des dépendances ;
+- exécution des vérifications ci-dessus.
+
+### Limites ouvertes
+
+- L'URL, la date d'extraction et le `Last-Modified` ne figurent pas dans le CSV.
+  Ils seront enregistrés lors du chargement en base.
+- L'année maximale acceptée dépend de l'horloge de la machine.
+- Aucune comparaison entre deux extractions NOAA n'existe encore.

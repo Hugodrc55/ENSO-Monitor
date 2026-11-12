@@ -52,6 +52,22 @@ git show HEAD:data/raw/noaa-cpc_oni-ersstv6_2026-11-09.txt | sha256sum
 
 L'empreinte doit être `118c563331335c8649cdc2677e6be7ae89d1259d901345fcddbc2857af280f7f`.
 
+## Commits du 12 novembre 2026
+
+| Ensemble cohérent | Fichiers | Message |
+| --- | --- | --- |
+| État de la publication du 10 novembre | `README.md`, `docs/GIT.md`, `docs/JOURNAL.md` | `docs: consigner la première publication GitHub` |
+| Transformation et ses dépendances | `etl/__init__.py`, `etl/transform_oni.py`, `etl/requirements.txt` | `feat: ajouter la transformation des observations ONI` |
+| Tests de la transformation | `etl/tests/`, `etl/requirements-dev.txt` | `test: ajouter les tests de transformation ONI` |
+| Documentation du traitement | `README.md`, `etl/README.md`, `docs/` | `docs: documenter le pipeline de transformation` |
+
+Revue des commits non publiés :
+
+```powershell
+git log --oneline origin/main..HEAD
+git show --stat HEAD~3 HEAD~2 HEAD~1 HEAD
+```
+
 ## Consulter le travail avant publication
 
 Depuis la racine du projet :

@@ -6,32 +6,37 @@ validation personnelle à chaque étape. Début : **4 novembre 2026**.
 Dépôt GitHub : [Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor),
 publié depuis le **10 novembre 2026**. Voir [le suivi Git](docs/GIT.md).
 
-## État actuel : Jour 2
+## État au 12 novembre 2026
 
-**Jour 1** : une page React/TypeScript appelle `GET /api/v1/health` et affiche
-si l'API FastAPI répond. Elle gère l'attente, l'échec et une nouvelle tentative.
+- **Application (4 novembre)** : une page React/TypeScript appelle
+  `GET /api/v1/health` et affiche si l'API FastAPI répond. Elle gère l'attente,
+  l'échec et une nouvelle tentative.
+- **Source scientifique (9 novembre)** : l'indice retenu est **NOAA ONI, version
+  ERSSTv6** ([page NOAA](https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/oni/v6/index.php)).
+  Le fichier authentique `oni.ascii.txt` a été téléchargé le 9 novembre 2026 dans
+  [`data/raw/`](data/raw/README.md), avec son empreinte SHA-256. Il couvre 921
+  saisons, de DJF 1950 à ASO 2026. Format, unités, datation des saisons,
+  différence ONI/RONI et limites : voir [DONNEES_NOAA.md](docs/DONNEES_NOAA.md).
+- **Transformation (12 novembre)** : [`etl/transform_oni.py`](etl/README.md)
+  vérifie le fichier brut, valide chaque ligne, traite les doublons, date chaque
+  saison par son mois central et produit `data/processed/oni_clean.csv`. Sur le
+  fichier du 9 novembre, les 921 lignes sont valides. 28 tests Pytest couvrent
+  la transformation.
 
-**Jour 2** : la source scientifique a été étudiée et documentée. L'indice choisi
-par l'étudiant est **NOAA ONI, version ERSSTv6**
-([page NOAA](https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/oni/v6/index.php)).
-Le fichier authentique `oni.ascii.txt` a été téléchargé le 9 novembre 2026 dans
-[`data/raw/`](data/raw/README.md), avec son empreinte SHA-256. Il couvre 921
-saisons, de DJF 1950 à ASO 2026. Format, unités, datation des saisons, différence
-ONI/RONI et limites : voir [DONNEES_NOAA.md](docs/DONNEES_NOAA.md).
-
-Aucune observation climatique n'est encore affichée ni importée. La transformation
-(Jour 3), PostgreSQL, le graphique et la comparaison historique seront développés
-aux journées prévues.
+Aucune observation n'est encore stockée en base ni affichée. PostgreSQL, l'API
+d'observations, le graphique et la comparaison historique seront développés aux
+étapes prévues dans [PLAN.md](docs/PLAN.md).
 
 ## Prérequis
 
 - Node.js **22 à partir de 22.13**, ou **24 et supérieur**, avec npm ; environnement vérifié le 4 novembre : Node 22.18.0, npm 10.9.3 ; le 9 novembre : Node 22.23.4, npm 10.9.9. Ce minimum tient compte d'ESLint, en plus de Vite.
 - Python **3.13** et Git ; environnement vérifié le 4 novembre : Python 3.13.7, Git 2.50.1 ; le 9 novembre : Python 3.13.17, Git 2.56.0.
 - PowerShell sous Windows pour les commandes ci-dessous.
-- Ni PostgreSQL ni Docker ne sont nécessaires aux Jours 1 et 2.
+- Ni PostgreSQL ni Docker ne sont nécessaires à ce stade.
 
 Les dépendances JavaScript sont figées dans `frontend/package-lock.json`.
-Les versions Python directes sont fixées dans `backend/requirements*.txt`.
+Les versions Python directes sont fixées dans `backend/requirements*.txt` (API)
+et `etl/requirements*.txt` (traitement des données).
 Les dépendances Python transitives sont résolues par pip à l'installation ;
 ces fichiers ne constituent pas un verrouillage complet de l'environnement.
 
@@ -40,10 +45,13 @@ ces fichiers ne constituent pas un verrouillage complet de l'environnement.
 ```powershell
 python -m venv backend/.venv
 .\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
+python -m venv etl/.venv
+.\etl\.venv\Scripts\python.exe -m pip install -r etl/requirements-dev.txt
 npm.cmd --prefix frontend ci
 ```
 
-L'appel direct à Python dans `.venv` évite de modifier la politique d'exécution
+L'API et l'ETL ont chacun leur environnement Python : l'API n'installe pas
+pandas. L'appel direct à Python dans `.venv` évite de modifier la politique d'exécution
 PowerShell pour activer l'environnement. `npm.cmd` évite le même problème avec
 le script `npm.ps1`. Les bibliothèques PDF utilisées par l'assistant pour lire
 le sujet ne sont pas des dépendances de l'application.
@@ -95,12 +103,38 @@ La requête expire après cinq secondes. Au démontage du composant, elle est an
 et sa réponse est ignorée. React StrictMode peut provoquer une première requête
 annulée en développement : le nettoyage de l'effet permet de le gérer.
 
+## Transformation des données NOAA
+
+Depuis la racine du dépôt :
+
+```powershell
+.\etl\.venv\Scripts\python.exe -m etl.transform_oni --input data/raw/noaa-cpc_oni-ersstv6_2026-11-09.txt --output data/processed/oni_clean.csv
+```
+
+```text
+fichier brut NOAA (data/raw/, jamais modifié)
+    │ contrôle SHA-256, lecture pandas en texte, en-tête vérifié
+    ▼
+validation de chaque ligne (saison, année, nombres finis, bornes physiques)
+    │ doublons : copie identique ignorée, versions contradictoires rejetées
+    ▼
+datation par le mois central (DJF 1950 → 1950-01-01), tri chronologique
+    ▼
+data/processed/oni_clean.csv (régénéré, non versionné)
+```
+
+Les valeurs `TOTAL` et `ANOM` sont reprises telles que publiées par la NOAA, sans
+recalcul ni correction. La commande signale chaque ligne ignorée ou rejetée et
+se termine avec le code 1 si une ligne est rejetée. Détails : [etl/README.md](etl/README.md)
+et [DONNEES_NOAA.md, section 10](docs/DONNEES_NOAA.md#10-transformation-du-fichier-etl).
+
 ## Vérifications
 
 ```powershell
 Push-Location backend
 .\.venv\Scripts\python.exe -m pytest -q
 Pop-Location
+.\etl\.venv\Scripts\python.exe -m pytest etl/tests -q
 npm.cmd --prefix frontend run lint
 npm.cmd --prefix frontend run build
 ```
@@ -126,9 +160,16 @@ Dans le navigateur : vérifier l'état accessible, arrêter l'API, cliquer sur
 « Vérifier à nouveau », constater l'état indisponible, relancer l'API et réessayer.
 Les résultats réellement obtenus sont consignés dans [le journal](docs/JOURNAL.md).
 
-Le test de santé du Jour 1 ne couvre pas les trois tests finaux exigés :
-transformation NOAA, route filtrée avec entrée invalide, changement de période
-dans le frontend. Leur réalisation est planifiée dans [PLAN.md](docs/PLAN.md).
+Les trois tests exigés par le sujet :
+
+| Test exigé | État |
+| --- | --- |
+| Transformation des données NOAA | Réalisé : `etl/tests/test_transform_oni.py`, 28 cas, dont le fichier NOAA réel |
+| Route API filtrée par période, avec entrée invalide | À développer |
+| Changement de période dans le frontend | À développer |
+
+Le test de santé de l'API (`backend/tests/test_health.py`) ne remplace aucun d'eux.
+Planification : [PLAN.md](docs/PLAN.md).
 
 ## Organisation des fichiers
 
@@ -142,10 +183,15 @@ backend/
   app/main.py              Application FastAPI, schéma Pydantic et route santé
   tests/test_health.py     Vérification du contrat HTTP initial
   requirements*.txt        Dépendances de l'API et des tests
-etl/README.md              Emplacement réservé ; aucune transformation
-data/raw/                  Fichier NOAA brut daté, empreinte SHA-256 et provenance
+etl/
+  transform_oni.py         Validation, doublons, datation et export CSV des observations ONI
+  tests/                   Tests Pytest de la transformation
+  requirements*.txt        Dépendances de l'ETL et des tests
+data/
+  raw/                     Fichier NOAA brut daté, empreinte SHA-256 et provenance
+  processed/               CSV produit par l'ETL (régénéré, non versionné)
 docs/
-  DONNEES_NOAA.md          Source ONI ERSSTv6 : colonnes, saisons, limites, plan du Jour 3
+  DONNEES_NOAA.md          Source ONI ERSSTv6 : colonnes, saisons, limites, règles de transformation
   EXIGENCES.md             Synthèse des huit pages du sujet officiel
   PLAN.md                  Préparation progressive et planning officiel prévisionnel
   DECISIONS.md             Choix, alternatives, limites et vérifications
@@ -164,8 +210,9 @@ technique, pas une observation scientifique.
 Les dépendances, `.venv`, `dist`, données de travail, fichiers temporaires et le PDF
 officiel sont ignorés. Ne pas utiliser `git add -f` pour contourner ces exclusions.
 Seul `data/raw/` est versionné dans `data/` : il contient la source NOAA brute,
-jamais modifiée à la main (décision D11). Les futurs fichiers produits dans
-`data/` restent exclus.
+jamais modifiée à la main (décision D11). Les fichiers produits dans `data/`,
+comme `data/processed/oni_clean.csv`, restent exclus : ils se régénèrent avec la
+commande de transformation.
 Voir [les commandes de commits et de premier push](docs/GIT.md).
 
 ## Travail personnel et assistance IA
@@ -173,6 +220,8 @@ Voir [les commandes de commits et de premier push](docs/GIT.md).
 Codex a assisté la lecture du sujet, l'initialisation, le code du Jour 1,
 la documentation et les vérifications. Au Jour 2, Claude a assisté la lecture
 des sources NOAA, le téléchargement, les contrôles du fichier et la documentation.
+Le 12 novembre, Claude a écrit le module de transformation, ses tests et la
+documentation associée, à partir du cahier des charges de l'étudiant.
 Ces contributions sont détaillées dans le journal. La compréhension personnelle
 et la validation par l'étudiant restent à confirmer ; elles ne sont pas déduites
 du code généré ou des tests réussis.
@@ -192,5 +241,5 @@ recalculer l'empreinte avec `Get-FileHash` et la comparer à `SHA256SUMS`.
 - Sujet officiel local, huit pages : voir [sa synthèse](docs/EXIGENCES.md).
 - Sources NOAA consultées le 9 novembre 2026 : voir [la liste](docs/DONNEES_NOAA.md#sources-consultées-le-9-novembre-2026).
 
-La prochaine session est le Jour 3, consacré à la transformation du fichier
-avec Pandas et NumPy, uniquement après validation de l'étudiant.
+Étape suivante prévue : modèle PostgreSQL, SQLAlchemy et migrations Alembic
+(voir [PLAN.md](docs/PLAN.md)).

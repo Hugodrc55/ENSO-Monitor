@@ -2,6 +2,7 @@
 
 - D01 à D09 : décisions initiales du **4 novembre 2026** (Jour 1), avec l'aide de Codex.
 - D10 à D14 : décisions du **9 novembre 2026** (Jour 2, données NOAA), avec l'aide de Claude.
+- D15 à D18 : décisions du **12 novembre 2026** (transformation des données), avec l'aide de Claude.
 
 Ces décisions sont proposées ou mises en œuvre avec l'aide de l'IA, dans le
 périmètre demandé. Leur compréhension et leur validation personnelles par l'étudiant
@@ -113,7 +114,7 @@ restent à confirmer. Aucune validation orale n'est supposée.
 - **Choix** : `reference_month` = premier jour du mois central. `SEAS` et `YR` sont conservés ; le début et la fin de période sont dérivés pour l'affichage.
 - **Avantage** : convention adaptée à une moyenne glissante centrée. Comme `YR` est l'année du mois central, la conversion ne demande aucune exception pour DJF et NDJ.
 - **Limite** : une date au 1er du mois est une convention, alors que la valeur couvre trois mois. L'interface devra l'indiquer.
-- **Vérification** : l'hypothèse « année du mois central » est confirmée sur 919 saisons sur 921 avec le fichier mensuel. L'hypothèse « année du premier mois » est rejetée (écarts jusqu'à 3,72 °C). Implémentation et tests prévus au Jour 3.
+- **Vérification** : l'hypothèse « année du mois central » est confirmée sur 919 saisons sur 921 avec le fichier mensuel. L'hypothèse « année du premier mois » est rejetée (écarts jusqu'à 3,72 °C). Mise en œuvre le 12 novembre dans `add_dates` (`etl/transform_oni.py`) ; tests de DJF et NDJ au changement d'année, y compris l'année bissextile 2000.
 
 ## D13 — Conserver l'ONI alors que la RONI est officielle
 
@@ -132,3 +133,45 @@ restent à confirmer. Aucune validation orale n'est supposée.
 - **Avantage** : aucun code non expliqué ni non testé dans le dépôt ; périmètre du Jour 2 respecté.
 - **Limite** : ces contrôles ne sont pas rejouables depuis le dépôt. Ils le deviendront au Jour 3, sous forme de code et de tests.
 - **Vérification** : aucune dépendance ni aucun fichier de code applicatif modifiés (`git status`).
+
+## D15 — ETL séparé, avec son environnement et ses dépendances
+
+- **Besoin** : transformer les données NOAA sans mêler ce traitement à l'API.
+- **Options** : code dans `backend/` ; script isolé sans dépendances déclarées ; paquet `etl/` avec ses propres dépendances.
+- **Choix** : paquet Python `etl/`, lancé par `python -m etl.transform_oni` depuis la racine. Environnement `etl/.venv`. `etl/requirements.txt` fixe pandas 3.1.1 et NumPy 2.5.4 ; `requirements-dev.txt` ajoute pytest 9.2.0, la version utilisée par l'API. Tests dans `etl/tests/`.
+- **Justification des dépendances** :
+  - pandas lit le fichier à colonnes et traite des colonnes entières : conversion, doublons, tri et dates ;
+  - NumPy fournit `isfinite`, qui écarte les valeurs absentes ou infinies, et `diff`, qui repère les trous de la série ;
+  - pytest exécute les tests, comme pour l'API.
+- **Avantage** : séparation frontend / API / ETL demandée par le sujet. L'API n'installe pas pandas.
+- **Limite** : deux environnements Python à installer. Le chargement en base partagera le modèle de données avec l'API : cette organisation sera réexaminée à ce moment-là.
+- **Vérification** : un environnement neuf, installé uniquement depuis `etl/requirements-dev.txt`, passe les 28 tests. `pip check` ne signale aucun conflit.
+
+## D16 — Lecture en texte, en-tête contrôlé, numéro de ligne conservé
+
+- **Besoin** : repérer chaque valeur non numérique et pouvoir retrouver toute observation dans le fichier NOAA.
+- **Options** : `read_csv` avec en-tête et types détectés automatiquement ; lecture en texte, puis conversion contrôlée.
+- **Choix** : `read_csv(sep=r"\s+", header=None, dtype=str, keep_default_na=False, skip_blank_lines=False)`, puis vérification de l'en-tête exact. Le numéro de ligne `source_line` est conservé jusqu'au CSV.
+- **Avantage** : un essai sur des fichiers fictifs a montré qu'avec l'en-tête automatique, une ligne comportant un champ de trop décale toutes les colonnes sans erreur. Avec `index_col=False`, elle est tronquée avec un simple avertissement. Ici, la lecture s'arrête et indique la ligne fautive. Chaque observation du CSV renvoie à sa ligne d'origine.
+- **Limite** : une seule ligne mal formée bloque tout le fichier. C'est voulu : il s'agit d'un problème de format, pas de valeur.
+- **Vérification** : tests avec une page HTML, une ligne à cinq champs, et les valeurs `abc`, `1,5`, `NaN`, `inf` ou absentes.
+
+## D17 — Doublons : copies ignorées, contradictions rejetées
+
+- **Besoin** : le sujet demande de contrôler les doublons. Chaque saison doit figurer une seule fois, sans choix arbitraire de valeur scientifique.
+- **Options** : refuser tout le fichier au premier doublon (approche envisagée le 9 novembre) ; garder la première ou la dernière version ; distinguer copies et contradictions.
+- **Choix** :
+  - copie strictement identique (mêmes `SEAS`, `YR`, `TOTAL` et `ANOM`) : la première ligne du fichier est gardée, les suivantes sont signalées ;
+  - versions différentes d'une même saison : toutes sont rejetées, avec leur motif.
+- **Avantage** : le traitement des copies est déterministe, et aucune valeur contradictoire n'est retenue au hasard.
+- **Limite** : une saison contradictoire disparaît du CSV. Le trou est signalé et la commande se termine avec le code 1.
+- **Vérification** : tests du doublon identique et du doublon contradictoire, et contrôle que chaque ligne lue est comptée une seule fois.
+
+## D18 — Bornes physiques larges et code de sortie
+
+- **Besoin** : ne pas importer une valeur impossible, sans prétendre juger les extrêmes climatiques.
+- **Options** : aucune borne ; bornes proches des valeurs observées ; bornes physiques larges.
+- **Choix** : `TOTAL` entre −2 et 40 °C, `ANOM` entre −10 et +10 °C. Une ligne hors bornes est rejetée, jamais corrigée. La commande renvoie le code 1 dès qu'une ligne est rejetée, tout en écrivant les observations valides.
+- **Avantage** : un code de remplissage (−99,90 par exemple) ou une erreur d'unité est arrêté, alors que `NDJ 2015` (+2,59 °C), maximum de la série, reste valide. Le code 1 empêche un traitement automatique suivant, comme l'import, de continuer sans examen.
+- **Limite** : les bornes résultent d'un raisonnement physique (l'eau de mer gèle vers −2 °C), pas d'une source NOAA. Aucune des pages NOAA consultées ne définit de code de valeur manquante pour ce fichier.
+- **Vérification** : un test rejette `-99.90`. Si les bornes sont élargies volontairement à ±100, ce test échoue.

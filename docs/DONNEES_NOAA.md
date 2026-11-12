@@ -1,9 +1,10 @@
 # Données NOAA — Oceanic Niño Index (ONI), ERSSTv6
 
-Étude réalisée le **9 novembre 2026** (Jour 2), avec l'assistance de Claude.
-Chaque affirmation sur la source renvoie à une page NOAA consultée ce jour-là
-ou à une vérification exécutée sur le fichier téléchargé. Ce document ne
-contient aucune prévision climatique.
+Étude de la source réalisée le **9 novembre 2026** et transformation (section 10)
+mise en œuvre le **12 novembre 2026**, avec l'assistance de Claude. Chaque
+affirmation sur la source renvoie à une page NOAA consultée le 9 novembre ou à
+une vérification exécutée sur le fichier téléchargé. Ce document ne contient
+aucune prévision climatique.
 
 ## 1. Les données ENSO en bref
 
@@ -262,9 +263,10 @@ Conséquence pour le code : il ne faut **pas** recalculer `ANOM` à partir de
 **Période couverte : de DJF 1950 (décembre 1949) à ASO 2026 (octobre 2026),
 soit 921 saisons.** Cela représente 76 années complètes et 9 saisons de 2026.
 
-Ces contrôles ont été exécutés avec des scripts Python temporaires (bibliothèque
-standard, hors du dépôt). Ils seront réécrits au Jour 3 avec Pandas et NumPy,
-puis automatisés par des tests.
+Ces contrôles ont d'abord été exécutés le 9 novembre avec des scripts Python
+temporaires (bibliothèque standard, hors du dépôt). Depuis le 12 novembre, ils
+font partie de la transformation `etl/transform_oni.py` et sont couverts par des
+tests automatisés (section 10).
 
 ## 8. Unités et règles d'interprétation
 
@@ -311,52 +313,141 @@ puis automatisés par des tests.
 9. **Aucune prévision.** Ce projet affiche des observations passées. Il ne
    prédit pas l'évolution d'ENSO.
 
-## 10. Plan de transformation prévu pour le Jour 3
+## 10. Transformation du fichier (ETL)
 
-Le Jour 3 ne commencera qu'après l'accord de l'étudiant. Il produira une
-transformation testable, sans base de données : PostgreSQL, SQLAlchemy et
-Alembic viendront aux Jours 4 et 5.
+Mise en œuvre le 12 novembre 2026 dans [`etl/transform_oni.py`](../etl/transform_oni.py),
+avec pandas et NumPy, et testée par [`etl/tests/test_transform_oni.py`](../etl/tests/test_transform_oni.py).
+La transformation lit et valide le fichier brut, puis produit un CSV. Le chargement
+dans PostgreSQL n'est pas encore développé. Commandes : voir
+[`etl/README.md`](../etl/README.md).
 
-1. **Lire** le fichier brut sans le modifier, avec Pandas (`read_csv` et
-   séparateur « espaces »). Vérifier l'empreinte SHA-256 avant le traitement.
-2. **Valider la structure** et refuser le fichier s'il échoue :
-   - en-tête exact ;
-   - 12 codes de saison ;
-   - années entières ;
-   - décimaux finis (NumPy) ;
-   - aucune valeur manquante ou sentinelle ;
-   - aucun doublon `(SEAS, YR)` ;
-   - séquence continue.
-3. **Dater chaque saison** selon la règle vérifiée (décision D12) :
-   - `reference_month` = 1er jour du mois central (`DJF 1950` → `1950-01-01`,
-     `NDJ 2025` → `2025-12-01`). Comme `YR` est l'année du mois central, aucune
-     exception n'est nécessaire pour DJF et NDJ.
-   - `period_start` et `period_end` : début du premier mois et fin du troisième
-     (`DJF 1950` → du `1949-12-01` au `1950-02-28`), pour l'affichage.
-   - `SEAS` et `YR` d'origine sont **conservés**, pour pouvoir toujours
-     retrouver la ligne NOAA.
-4. **Conserver `ANOM` tel quel**, sans le recalculer (référence mobile).
-5. **Attacher la provenance** à chaque import : code de série `ONI_ERSSTv6`, URL,
-   nom du fichier, SHA-256, date d'extraction et `Last-Modified`. Ces éléments
-   préparent les entités *Indice*, *Source* et *Import* demandées pour l'UML.
-6. **Tester** la transformation sur le vrai fichier, puis sur une copie
-   volontairement altérée (doublon, saison inconnue, valeur manquante).
+### Étapes
 
-Piste de représentation dans PostgreSQL, **à décider au Jour 4** et non
-implémentée : une ligne par `(série, SEAS, YR)` avec une contrainte d'unicité.
-Les valeurs seraient stockées en `NUMERIC` plutôt qu'en `float`, pour conserver
-exactement les deux décimales publiées.
+1. **Intégrité.** L'empreinte SHA-256 du fichier est comparée à
+   `data/raw/SHA256SUMS`. Si elle diffère, le fichier a été modifié et le
+   traitement s'arrête.
+2. **Lecture.** pandas lit chaque champ comme du texte. L'en-tête doit être
+   exactement `SEAS YR TOTAL ANOM`, sinon le fichier est refusé (cas d'une page
+   d'erreur HTML, par exemple). Une ligne avec un champ de trop arrête aussi la
+   lecture : avec ses réglages par défaut, pandas décalerait les colonnes sans
+   erreur (décision D16). Le numéro de ligne d'origine est conservé.
+3. **Validation de chaque ligne.** Une ligne est rejetée, avec son motif, si :
+   - `SEAS` n'est pas l'un des 12 codes NOAA (en majuscules : `djf` est rejeté) ;
+   - `YR` n'est pas une année à 4 chiffres, comprise entre 1950 et l'année en cours ;
+   - `TOTAL` ou `ANOM` est absent, non numérique ou infini (contrôle `np.isfinite`) ;
+   - `TOTAL` sort de l'intervalle −2 à 40 °C, ou `ANOM` de −10 à +10 °C.
 
-### Problèmes à anticiper
+   Ces bornes physiques sont volontairement larges (décision D18). Les valeurs
+   observées vont de 24,39 à 29,23 °C pour `TOTAL` et de −2,04 à +2,59 °C pour
+   `ANOM` : les bornes ne jugent pas un extrême climatique, elles écartent une
+   valeur impossible (code de remplissage, erreur d'unité). Aucune des pages NOAA
+   consultées ne définit de code de valeur manquante pour ce fichier : aucun code
+   n'est donc interprété.
+4. **Doublons sur `(SEAS, YR)`** (décision D17) :
+   - copies strictement identiques (mêmes `TOTAL` et `ANOM`) : la première ligne
+     du fichier est gardée, les suivantes sont signalées ;
+   - versions contradictoires : toutes sont rejetées, car en choisir une serait
+     arbitraire.
+5. **Datation** par le mois central (décision D12), détaillée ci-dessous.
+6. **Continuité.** Un trou entre deux saisons consécutives est signalé, jamais comblé.
+7. **Export** d'un CSV trié chronologiquement.
 
-| Problème | Situation au 9 novembre 2026 | Traitement prévu |
+Aucune valeur n'est corrigée, interpolée ou recalculée : `ANOM` reste l'anomalie
+publiée par la NOAA (voir la référence mobile, section 6). Le journal de la
+commande indique chaque ligne ignorée ou rejetée, avec son numéro et son motif.
+La commande renvoie le code 1 dès qu'une ligne est rejetée, pour qu'un import
+ne s'enchaîne pas sans examen.
+
+### Datation des saisons
+
+`reference_month` est le premier jour du mois central de la saison. Comme `YR`
+est l'année de ce mois central (section 5), la date se calcule sans exception :
+année `YR`, mois central, jour 1. `period_start` et `period_end` donnent les
+bornes des trois mois couverts.
+
+| Saison | `period_start` | `reference_month` | `period_end` |
+| --- | --- | --- | --- |
+| `DJF 1950` | 1949-12-01 | 1950-01-01 | 1950-02-28 |
+| `JFM 1950` | 1950-01-01 | 1950-02-01 | 1950-03-31 |
+| `NDJ 1999` | 1999-11-01 | 1999-12-01 | 2000-01-31 |
+| `DJF 2000` | 1999-12-01 | 2000-01-01 | 2000-02-29 (année bissextile) |
+| `ASO 2026` | 2026-08-01 | 2026-09-01 | 2026-10-31 |
+
+**Pourquoi DJF et NDJ demandent de l'attention.** Ce sont les deux seules saisons
+à cheval sur deux années civiles : DJF commence en décembre de l'année
+précédente, NDJ finit en janvier de l'année suivante. Si `YR` était lu comme
+l'année du premier mois, `DJF 1950` serait daté de décembre 1950, un an trop tard,
+et l'ordre de la série serait faux. Avec le mois central, seule une borne de
+période change d'année ; les décalages de mois de pandas le gèrent, y compris
+pour les années bissextiles.
+
+Ces dates servent au tri, au filtrage et à l'affichage. Elles ne correspondent
+pas à une mesure faite ce jour-là : chaque valeur est une moyenne sur trois mois.
+
+### Fichier produit : `data/processed/oni_clean.csv`
+
+| Colonne | Contenu | Première ligne |
 | --- | --- | --- |
-| Doublons | Aucun | Refus du fichier ; contrainte d'unicité en base |
-| Valeurs manquantes | Aucune | Refus explicite, jamais de valeur inventée ou interpolée |
-| Dates incohérentes | Aucune ; DJF et NDJ demandent une règle claire | Règle du mois central, contrôle de la séquence |
-| Année incomplète | 2026 : 9 saisons | Normal ; ne pas compléter |
-| Révisions NOAA | Valeurs récentes provisoires ; v5 et v6 différentes | Nouveau fichier daté à chaque extraction, comparaison avec l'import précédent |
-| Confusion ONI/RONI | Fichiers distincts | Un seul fichier ONI importé, code de série explicite |
+| `reference_month` | 1er jour du mois central (convention de date) | `1950-01-01` |
+| `period_start` | 1er jour du premier mois de la saison | `1949-12-01` |
+| `period_end` | Dernier jour du troisième mois | `1950-02-28` |
+| `season` | `SEAS` d'origine | `DJF` |
+| `year` | `YR` d'origine | `1950` |
+| `total_c` | `TOTAL`, en °C, tel que publié | `25.01` |
+| `anom_c` | `ANOM`, en °C : la valeur de l'ONI, telle que publiée | `-1.32` |
+| `source_file` | Fichier brut d'origine | `noaa-cpc_oni-ersstv6_2026-11-09.txt` |
+| `source_line` | Numéro de ligne dans ce fichier | `2` |
+
+Format : UTF-8, fins de ligne LF, dates ISO 8601. Les nombres sont écrits sans
+arrondi (`-1.20` devient `-1.2`, même valeur). Le fichier n'est pas versionné : il
+se régénère depuis le fichier brut. Avec le même fichier brut, deux exécutions
+produisent un CSV identique octet pour octet.
+
+### Résultat sur le fichier du 9 novembre 2026
+
+| Mesure | Résultat |
+| --- | --- |
+| Lignes d'observation lues | 921 |
+| Observations valides écrites | 921 |
+| Doublons identiques ignorés | 0 |
+| Lignes rejetées | 0 |
+| Saisons manquantes | 0 |
+| Période | `DJF 1950` (1950-01-01) à `ASO 2026` (2026-09-01) |
+| SHA-256 du CSV produit | `4b1f7a7703dab4ded6337835e46d675c58b7baf3b50daed54c2527293d67e6d1` |
+
+Ces chiffres confirment les contrôles de la section 7. Les règles de rejet sont
+démontrées par les tests, sur de petits fichiers aux valeurs fictives.
+
+### Limites et points reportés
+
+- **Provenance de l'extraction.** Le CSV indique le fichier et la ligne d'origine,
+  mais pas l'URL, la date d'extraction ni le `Last-Modified`. Ces informations
+  (déjà consignées dans `data/raw/README.md`) seront enregistrées lors du chargement
+  en base, avec le code de série `ONI_ERSSTv6`. Elles alimenteront les entités
+  *Indice*, *Source* et *Import* demandées pour l'UML.
+- **Année maximale.** Elle dépend de l'horloge de la machine. Pour un fichier réel,
+  toutes les années sont antérieures à sa date de téléchargement : le résultat ne
+  change pas.
+- **Révisions NOAA.** Aucune comparaison entre deux extractions n'existe encore.
+  Elle deviendra nécessaire au prochain téléchargement.
+- **Hors périmètre.** Le choix du seuil (`>=` ou `>`, section 2) et la
+  détection des épisodes ne font pas partie de la transformation.
+
+Piste de représentation dans PostgreSQL, non implémentée : une ligne par
+`(série, SEAS, YR)` avec une contrainte d'unicité. Les valeurs seraient stockées
+en `NUMERIC` plutôt qu'en `float`, pour conserver exactement les deux décimales
+publiées.
+
+### Problèmes identifiés et traitement
+
+| Problème | Situation au 9 novembre 2026 | Traitement |
+| --- | --- | --- |
+| Doublons | Aucun | Copies identiques ignorées, versions contradictoires rejetées ; contrainte d'unicité prévue en base |
+| Valeurs manquantes | Aucune | Ligne rejetée avec son motif ; jamais de valeur inventée ou interpolée |
+| Dates incohérentes | Aucune ; DJF et NDJ demandent une règle claire | Règle du mois central ; trous de la série signalés |
+| Année incomplète | 2026 : 9 saisons | Normal ; rien n'est complété |
+| Révisions NOAA | Valeurs récentes provisoires ; v5 et v6 différentes | Nouveau fichier daté à chaque extraction ; comparaison entre extractions à développer |
+| Confusion ONI/RONI | Fichiers distincts | Un seul fichier ONI, nommé explicitement ; code de série prévu en base |
 
 ## Sources consultées le 9 novembre 2026
 
