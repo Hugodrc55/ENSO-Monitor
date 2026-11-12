@@ -3,11 +3,8 @@
 Projet individuel de rattrapage HETIC WEB3, développé progressivement avec une
 validation personnelle à chaque étape. Début : **4 novembre 2026**.
 
-Dépôt GitHub configuré le **8 novembre 2026** :
-[Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor).
-Les commits des Jours 1 et 2 sont locaux. Au 9 novembre 2026, le dépôt distant
-est encore vide : le premier push attend l'autorisation explicite de publication.
-Voir [le suivi Git](docs/GIT.md).
+Dépôt GitHub : [Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor),
+publié depuis le **10 novembre 2026**. Voir [le suivi Git](docs/GIT.md).
 
 ## État actuel : Jour 2
 

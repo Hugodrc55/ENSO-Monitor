@@ -285,3 +285,13 @@ date de référence, puis vérifier l'empreinte du fichier brut avec `Get-FileHa
 
 Jour 3 : transformation du fichier brut avec Pandas et NumPy, selon le plan de
 `DONNEES_NOAA.md`. À commencer uniquement après l'accord de l'étudiant.
+
+## 10 novembre 2026 — Première publication sur GitHub
+
+- Push de `main` vers `origin` (`git push -u origin main`), après l'accord explicite
+  de l'étudiant : publication des sept commits des 8 et 9 novembre.
+- Contrôle préalable des fichiers suivis : ni PDF du sujet, ni `.env`, ni
+  environnement virtuel, ni dépendance installée.
+- Vérification : `git rev-parse HEAD` et `git ls-remote origin refs/heads/main`
+  renvoient le même SHA, `6c4d9fb`. `main` suit désormais `origin/main`.
+- Aucun fichier du projet n'a été modifié ce jour-là.

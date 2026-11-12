@@ -1,16 +1,17 @@
 # Git et publication GitHub
 
-## État au 9 novembre 2026
+## État de la publication
 
-- Dépôt fourni par l'étudiant : <https://github.com/Hugodrc55/ENSO-Monitor>.
+- Dépôt : <https://github.com/Hugodrc55/ENSO-Monitor>.
 - Distant `origin` : `https://github.com/Hugodrc55/ENSO-Monitor.git`.
-- Branche locale : `main`, sans branche amont configurée.
-- Le Jour 1, développé le 4 novembre, a été organisé en commits locaux le 8 novembre.
-- Le Jour 2 a été réalisé et commité localement le 9 novembre.
-- **Aucun push effectué.** Le 8 novembre, le contrôle automatique a refusé la
-  publication faute d'autorisation explicite. Le 9 novembre,
-  `git ls-remote origin refs/heads/main` ne renvoie toujours rien : le dépôt
-  distant est vide. Le premier push enverra donc les commits des Jours 1 et 2.
+- Branche `main`, qui suit `origin/main`.
+- L'initialisation du 4 novembre a été organisée en commits le 8 novembre ; l'étude
+  des données NOAA a été commitée le 9 novembre.
+- Une première tentative de push, le 8 novembre, a été refusée faute
+  d'autorisation explicite de publication.
+- **Premier push le 10 novembre 2026** : les sept commits des 8 et 9 novembre ont
+  été publiés. `git rev-parse HEAD` et `git ls-remote origin refs/heads/main`
+  renvoyaient le même SHA, `6c4d9fb`.
 
 ## Commits du Jour 1
 
@@ -58,33 +59,32 @@ Depuis la racine du projet :
 ```powershell
 git status --short --branch
 git remote -v
-git log --oneline --reverse
-git show --stat HEAD
-git diff HEAD~3 HEAD
+git log --oneline origin/main..HEAD
+git diff --stat origin/main HEAD
+git diff origin/main HEAD
 git ls-tree -r --name-only HEAD
 git check-ignore -v docs/sujet/HETIC_WEB3_Projet_ENSO_Monitor.pdf backend/.venv frontend/node_modules
 ```
 
-La comparaison `HEAD~3 HEAD` montre les trois commits suivant le premier ;
-`git show --root d2fc989` permet de lire aussi le commit initial.
-Les 28 fichiers de code, configuration et documentation sont destinés au dépôt.
-Le PDF officiel, `.env`, les dépendances installées et les fichiers temporaires
-sont exclus. Le contrôle de motifs usuels de secrets n'a rien détecté ; il ne
-remplace pas une revue complète du contenu.
+`origin/main..HEAD` désigne les commits locaux qui ne sont pas encore publiés.
+`git show --root d2fc989` permet de relire le commit initial. Le PDF officiel,
+`.env`, les dépendances installées, les environnements virtuels, les fichiers
+temporaires et les données produites dans `data/` (hors `data/raw/`) sont exclus.
 
-## Premier push, après autorisation explicite
+## Publier de nouveaux commits, après autorisation explicite
 
-`origin` est déjà configuré : ne pas refaire `git remote add origin`.
+`origin` est configuré et `main` suit `origin/main` : ne pas refaire
+`git remote add origin` ni `git push -u`.
 
 ```powershell
-git push -u origin main
+git push
 ```
 
 Cette commande envoie les commits et les fichiers suivis vers GitHub, où leur
-accès dépend de la visibilité et des permissions du dépôt. Depuis le Jour 2,
-cela inclut la copie brute du fichier NOAA dans `data/raw/`. Le PDF du sujet
-reste exclu. Git peut demander une
-authentification. Ne jamais placer un jeton dans l'URL ou dans un fichier du projet.
+accès dépend de la visibilité et des permissions du dépôt. Cela inclut la copie
+brute du fichier NOAA dans `data/raw/`. Le PDF du sujet reste exclu. Git peut
+demander une authentification. Ne jamais placer un jeton dans l'URL ou dans un
+fichier du projet.
 
 Si le distant a reçu d'autres commits entre-temps, examiner l'historique avant de
 poursuivre. Aucun force-push, aucune réécriture d'historique.
