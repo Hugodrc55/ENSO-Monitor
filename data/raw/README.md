@@ -2,7 +2,17 @@
 
 Ce dossier contient des copies **non modifiées** de fichiers téléchargés auprès de
 la NOAA. Elles ne doivent jamais être corrigées à la main : toute transformation
-se fera par script, à partir de ces fichiers, dans une étape ultérieure.
+se fait par script, à partir de ces fichiers (`etl/transform_oni.py`).
+
+Chaque fichier brut est accompagné d'une **fiche de provenance** JSON
+(`<nom>.provenance.json`), lue par le programme d'import (`backend/app/import_oni.py`).
+Elle reprend les informations de ce README sous une forme lisible par un programme :
+- URL, empreinte SHA-256, date d'extraction et `Last-Modified` ;
+- preuve de la version ;
+- source et série.
+
+L'import vérifie que l'empreinte du fichier brut correspond à celle de la fiche.
+La date d'extraction retenue est celle de l'en-tête `Date` du serveur NOAA.
 
 ## `noaa-cpc_oni-ersstv6_2026-11-09.txt`
 

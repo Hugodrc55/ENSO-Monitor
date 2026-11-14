@@ -1,0 +1,20 @@
+{
+  "file_name": "noaa-cpc_oni-ersstv6_2026-11-09.txt",
+  "sha256": "118c563331335c8649cdc2677e6be7ae89d1259d901345fcddbc2857af280f7f",
+  "source_url": "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt",
+  "downloaded_at": "2026-11-09T13:42:35Z",
+  "source_last_modified": "2026-11-03T19:31:48Z",
+  "version_evidence": "Page d'index NOAA https://www.cpc.ncep.noaa.gov/data/indices/ : lien oni.ascii.txt sous l'intitulé « Seasonal ERSSTv6 (centered base periods) \"Oceanic Niño Index\" ». Les 921 valeurs ANOM sont à 0,05 °C au plus du tableau ONI v6 (495 écarts supérieurs à 0,05 avec le tableau v5). Vérifié le 9 novembre 2026.",
+  "source": {
+    "code": "NOAA_CPC",
+    "name": "NOAA, National Weather Service, Climate Prediction Center (CPC)",
+    "url": "https://www.cpc.ncep.noaa.gov/"
+  },
+  "climate_index": {
+    "code": "ONI_ERSSTv6",
+    "name": "Oceanic Niño Index (ONI)",
+    "version": "ERSSTv6, périodes de base de 30 ans centrées",
+    "unit": "°C",
+    "reference_url": "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/oni/v6/index.php"
+  }
+}
