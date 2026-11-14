@@ -1,20 +1,26 @@
 """Connexion à PostgreSQL : URL de la base, moteur SQLAlchemy et classe de base des modèles.
 
-Aucune connexion n'est ouverte quand ce module est importé. L'API ne l'importe
-pas encore : elle démarre et répond à /api/v1/health même sans base de données.
+Aucune connexion n'est ouverte quand ce module est importé : l'API démarre et
+répond à /api/v1/health même sans base de données. La connexion n'a lieu qu'à la
+première requête qui interroge la base.
 """
 
 import os
+from collections.abc import Iterator
+from functools import lru_cache
 from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Session
 
 # Fichier .env à la racine du dépôt, exclu de Git (modèle : .env.example).
 # Une variable déjà définie dans l'environnement reste prioritaire.
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+
+# Attente maximale pour ouvrir une connexion à PostgreSQL.
+CONNECT_TIMEOUT_SECONDS = 5
 
 # Noms explicites et stables pour les clés et contraintes. Ils figurent dans la
 # migration et dans les messages d'erreur de PostgreSQL, par exemple
@@ -52,5 +58,27 @@ def get_database_url() -> str:
 
 
 def create_db_engine(url: str | None = None) -> Engine:
-    """Créer un moteur SQLAlchemy ; la connexion n'est ouverte qu'à la première requête."""
-    return create_engine(url or get_database_url())
+    """Créer un moteur SQLAlchemy ; la connexion n'est ouverte qu'à la première requête.
+
+    pool_pre_ping vérifie qu'une connexion conservée est encore valide, par exemple
+    après un redémarrage de PostgreSQL. connect_timeout limite l'attente si la base
+    est injoignable : sans lui, une connexion vers un port fermé peut attendre
+    environ deux minutes sous Windows avant d'échouer.
+    """
+    return create_engine(
+        url or get_database_url(),
+        pool_pre_ping=True,
+        connect_args={"connect_timeout": CONNECT_TIMEOUT_SECONDS},
+    )
+
+
+@lru_cache(maxsize=1)
+def get_engine() -> Engine:
+    """Moteur partagé par l'API, créé à la première requête qui en a besoin."""
+    return create_db_engine()
+
+
+def get_session() -> Iterator[Session]:
+    """Dépendance FastAPI : une session par requête, fermée à la fin de la requête."""
+    with Session(get_engine()) as session:
+        yield session
