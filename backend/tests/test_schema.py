@@ -1,61 +1,22 @@
 """Tests du schéma PostgreSQL créé par la migration Alembic.
 
-Ils utilisent une base jetable, désignée par TEST_DATABASE_URL (nom terminé par
-« _test »), qu'ils vident avant et après leur exécution. Sans cette variable, ils
-sont ignorés. Les lignes insérées sont FICTIVES : ce ne sont pas des observations NOAA.
+La base jetable et les fixtures `engine`, `session` et `alembic_config` sont
+définies dans conftest.py. Les lignes insérées sont FICTIVES : ce ne sont pas
+des observations NOAA.
 """
 
-from collections.abc import Iterator
 from datetime import date, datetime, timezone
 from decimal import Decimal
-from pathlib import Path
 
 import pytest
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
 from sqlalchemy import Engine, inspect, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.database import create_db_engine, read_setting
 from app.models import ClimateIndex, DataImport, Observation, Source
-
-TEST_DATABASE_URL = read_setting("TEST_DATABASE_URL")
-ALEMBIC_INI = Path(__file__).resolve().parents[1] / "alembic.ini"
-
-pytestmark = pytest.mark.skipif(
-    TEST_DATABASE_URL is None, reason="TEST_DATABASE_URL non définie : pas de base de test"
-)
-
-
-def alembic_config() -> Config:
-    config = Config(str(ALEMBIC_INI))
-    config.attributes["database_url"] = TEST_DATABASE_URL
-    return config
-
-
-@pytest.fixture(scope="module")
-def engine() -> Iterator[Engine]:
-    """Base de test vidée, puis créée par la migration (et non par create_all)."""
-    if not make_url(TEST_DATABASE_URL).database.endswith("_test"):
-        pytest.fail("TEST_DATABASE_URL doit désigner une base jetable, nommée en _test")
-    config = alembic_config()
-    command.downgrade(config, "base")
-    command.upgrade(config, "head")
-    engine = create_db_engine(TEST_DATABASE_URL)
-    yield engine
-    engine.dispose()
-    command.downgrade(config, "base")
-
-
-@pytest.fixture
-def session(engine: Engine) -> Iterator[Session]:
-    """Session dont rien n'est enregistré : tout est annulé à la fin du test."""
-    with Session(engine) as session:
-        yield session
-        session.rollback()
 
 
 # --- Données fictives ----------------------------------------------------------
@@ -112,8 +73,8 @@ def assert_rejected(session: Session, observation: Observation, constraint: str)
 # --- Migration ---------------------------------------------------------------
 
 
-def test_migration_creates_schema(engine: Engine) -> None:
-    head = ScriptDirectory.from_config(alembic_config()).get_current_head()
+def test_migration_creates_schema(engine: Engine, alembic_config: Config) -> None:
+    head = ScriptDirectory.from_config(alembic_config).get_current_head()
     schema = inspect(engine)
 
     tables = set(schema.get_table_names())
@@ -222,11 +183,9 @@ def test_invalid_observation_is_rejected(
 # --- Retour arrière de la migration ---------------------------------------------
 
 
-def test_downgrade_then_upgrade(engine: Engine) -> None:
-    config = alembic_config()
-
-    command.downgrade(config, "base")
+def test_downgrade_then_upgrade(engine: Engine, alembic_config: Config) -> None:
+    command.downgrade(alembic_config, "base")
     assert "observation" not in inspect(engine).get_table_names()
 
-    command.upgrade(config, "head")
+    command.upgrade(alembic_config, "head")
     assert "observation" in inspect(engine).get_table_names()
