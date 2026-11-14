@@ -1,0 +1,26 @@
+# PostgreSQL local, pour le développement et les tests du schéma.
+# Les valeurs viennent du fichier .env (modèle : .env.example).
+# Démarrage depuis la racine du dépôt : docker compose up -d db
+name: enso-monitor
+
+services:
+  db:
+    image: postgres:18.7-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-enso}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?definir POSTGRES_PASSWORD dans .env}
+      POSTGRES_DB: ${POSTGRES_DB:-enso_monitor}
+    ports:
+      # Accessible uniquement depuis cette machine.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Depuis PostgreSQL 18, l'image officielle range ses données sous /var/lib/postgresql.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
