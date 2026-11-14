@@ -1,4 +1,10 @@
-# Dépendances directes de l'API ; versions installées au Jour 1.
+# Dépendances directes de l'API.
+# Installées le 4 novembre 2026 : service HTTP et validation.
 fastapi==0.162.0
 pydantic==2.14.2
 uvicorn==0.54.0
+# Installées le 14 novembre 2026 : base PostgreSQL (modèles, migrations, pilote, fichier .env).
+alembic==1.20.1
+psycopg[binary]==3.3.9
+python-dotenv==1.2.4
+sqlalchemy==2.1.8
