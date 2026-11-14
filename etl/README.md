@@ -2,8 +2,9 @@
 
 Traitement Python, séparé de l'API, du fichier NOAA brut versionné dans
 [`data/raw/`](../data/raw/README.md). La transformation (lecture, validation,
-doublons, datation) est en place. Le chargement dans PostgreSQL n'est pas encore
-développé.
+doublons, datation) est en place. Le chargement dans PostgreSQL du CSV produit ici
+est fait par [`backend/app/import_oni.py`](../backend/app/import_oni.py), qui
+utilise les modèles de l'API (décision D24).
 
 | Fichier | Rôle |
 | --- | --- |

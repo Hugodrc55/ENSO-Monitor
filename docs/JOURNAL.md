@@ -505,6 +505,9 @@ Quatre commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) 
 3. `test: vérifier les contraintes du schéma PostgreSQL`
 4. `docs: documenter le schéma PostgreSQL et sa migration`
 
+Publication : push le 14 novembre, après l'accord explicite de l'étudiant. SHA
+local et distant identiques, `284a0ac`.
+
 ### Contributions de l'IA
 
 **Fourni par l'étudiant** : le cahier des charges de la session :
@@ -530,3 +533,103 @@ Les hypothèses à confirmer sont listées dans
 - règle en cas de révision NOAA ;
 - refus d'une troisième décimale ;
 - emplacement du programme d'import.
+
+## 14 novembre 2026 (fin de journée) — Import des observations et API filtrée
+
+### Périmètre
+
+Démontrer le trajet fichier NOAA → PostgreSQL → API FastAPI filtrée, en vue de la
+remise du 22 novembre. Exclus : graphique et comparaison d'épisodes.
+
+### État de départ
+
+- `main` propre et synchronisée avec `origin/main` (`284a0ac`).
+- Docker en marche ; migration `86057118b37f (head)` déjà appliquée sur la base de
+  développement, qui ne contenait aucune observation.
+- Tests de la transformation : 28 passed. Le CSV régénéré est identique au précédent
+  (SHA-256 `4b1f7a77…`).
+- Seul prérequis manquant : une provenance lisible par un programme.
+
+### Travail réalisé
+
+- `data/raw/noaa-cpc_oni-ersstv6_2026-11-09.provenance.json` : fiche de provenance,
+  valeurs reprises de `data/raw/README.md` (D23).
+- `backend/app/import_oni.py` : import du CSV avec contrôle de la fiche, de
+  l'empreinte et des décimales. Pas de doublon, conflits signalés sans écriture (D24).
+- `backend/app/observations.py`, `backend/app/main.py`, `backend/app/database.py` :
+  route `GET /api/v1/observations`, réponse 503 si la base est injoignable, session
+  par requête et délai de connexion (D25).
+- **Tests** :
+  - `backend/tests/conftest.py` regroupe la base de test (D26) ;
+  - `test_import_oni.py` : 8 cas ;
+  - `test_observations_api.py` : 10 cas.
+- **Documentation** : démonstration du README, `NOTE_IMPORT_API.md` pour le dossier,
+  décisions D23 à D26, et mises à jour du plan, de `BASE_DE_DONNEES.md` (hypothèses
+  tranchées), de `DONNEES_NOAA.md`, d'`etl/README.md` et du guide Git.
+
+### Constats et corrections
+
+- **Test « base indisponible » lent** : il durait 130 s, car sous Windows une
+  connexion vers un port fermé insiste environ deux minutes. Un délai de connexion
+  le ramène à 2 s.
+- **Même problème pendant la démonstration réelle** : base arrêtée, la route ne
+  répondait pas en 60 s (curl a abandonné, code 000). Correctif :
+  `connect_timeout` de 5 s dans `create_db_engine`. Ensuite, réponse 503 en 5,1 s,
+  puis 200 après le redémarrage de la base.
+- **Relecture du code** : dix lignes trop longues ont été reformatées, et le conflit
+  est maintenant construit avec des arguments nommés. Les tests et la démonstration
+  d'import ont été relancés après ces changements.
+
+### Vérifications réelles
+
+| Vérification exécutée | Résultat observé |
+| --- | --- |
+| `alembic upgrade head`, `current`, `check` (base de développement) | `86057118b37f (head)` ; « No new upgrade operations detected » |
+| `python -m pytest etl/tests` | 28 passed |
+| `python -m pytest -W error` depuis `backend` | **34 passed** en 3,5 s (santé 1, import 8, route 10, schéma 15) |
+| Erreurs volontaires : conflit ignoré, borne de fin exclue, contrôle début/fin supprimé | 1 test en échec dans chaque cas ; fichiers restaurés à l'identique, 34 passed |
+| Import réel, 1er passage | « Import n°1 : créé » ; 921 ajoutées ; 921 observations et 1 import en base |
+| Import réel, 2e passage du même fichier | « déjà enregistré (même empreinte) » ; 0 ajoutée, 921 identiques ; 921 observations et 1 import |
+| Requête SQL sur NDJ 2015 | Ligne 793 du fichier brut, extraction le 2026-11-09 13:42:35 UTC, série `ONI_ERSSTv6`, source `NOAA_CPC` |
+| Import d'une copie modifiée (NDJ 2015 : 2.59 → 2.60, hors du dépôt) | Conflit affiché, code 1 ; toujours 921 observations, NDJ 2015 = 2.59 |
+| `GET /api/v1/observations?start=2015-07-01&end=2016-03-01` (API locale) | 200 ; 9 saisons de JJA 2015 à FMA 2016 ; NDJ 2015 = 2.59, DJF 2016 = 2.5 |
+| `?start=2015-12-01&end=2015-12-01` | 200 ; NDJ 2015 seule (bornes incluses) |
+| `?start=1940-01-01&end=1949-12-31` | 200 ; liste vide |
+| `?start=2015-02-30&…`, début après la fin, `start` manquant | 422, 422 (message en français), 422 |
+| Base arrêtée | `/api/v1/health` 200 ; `/api/v1/observations` 503 en 5,1 s |
+
+Non relancés : lint et build du frontend (aucun fichier frontend modifié),
+contrôle dans un navigateur.
+
+### Git
+
+Six commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
+1. `chore: ajouter la fiche de provenance du fichier NOAA`
+2. `feat: importer les observations ONI dans PostgreSQL`
+3. `feat: ajouter la route GET /api/v1/observations`
+4. `refactor: partager la base de test entre les fichiers de tests`
+5. `test: tester l'import et la route des observations`
+6. `docs: documenter l'import et l'API des observations`
+
+### Contributions de l'IA
+
+**Fourni par l'étudiant** : le cahier des charges de la session :
+- le trajet à démontrer ;
+- la règle « deux imports, aucun ajout au second » ;
+- le signalement des conflits sans écrasement ;
+- le contrat de la route : bornes incluses, liste vide, erreurs claires ;
+- les tests attendus.
+
+**Réalisé par Claude** :
+- fiche de provenance ;
+- import, route, tests et documentation ;
+- exécution des vérifications et de la démonstration ;
+- correction du délai de connexion.
+
+### Limites ouvertes
+
+- Un fichier NOAA révisé sera refusé : la règle d'acceptation des révisions reste
+  à définir.
+- L'import fait confiance au CSV : il vérifie le fichier brut que le CSV désigne,
+  mais pas que le CSV en dérive.
+- Restent : l'interface, la courbe, le test frontend, la comparaison et le dossier.

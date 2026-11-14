@@ -1,4 +1,7 @@
-"""Contrat HTTP initial ; le test d'observations filtrées viendra au Jour 7."""
+"""Contrat HTTP de la route de santé, qui ne dépend pas de la base de données.
+
+La route filtrée des observations est testée dans test_observations_api.py.
+"""
 
 from fastapi.testclient import TestClient
 

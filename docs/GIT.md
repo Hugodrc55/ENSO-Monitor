@@ -14,6 +14,8 @@
   renvoyaient le même SHA, `6c4d9fb`.
 - **Push du 12 novembre 2026** : les quatre commits de la transformation ont été
   publiés ; SHA local et distant identiques, `17a60c1`.
+- **Push du 14 novembre 2026** : les quatre commits du schéma PostgreSQL ont été
+  publiés ; SHA local et distant identiques, `284a0ac`.
 - Chaque publication suit un accord explicite de l'étudiant.
 
 ## Commits du Jour 1
@@ -75,11 +77,22 @@ L'empreinte doit être `118c563331335c8649cdc2677e6be7ae89d1259d901345fcddbc2857
 
 `.env`, qui contient le mot de passe local, est exclu de Git.
 
+Import et API, le même jour en fin de journée :
+
+| Ensemble cohérent | Fichiers | Message |
+| --- | --- | --- |
+| Provenance lisible par l'import | `data/raw/*.provenance.json`, `data/raw/README.md` | `chore: ajouter la fiche de provenance du fichier NOAA` |
+| Import | `backend/app/import_oni.py` | `feat: importer les observations ONI dans PostgreSQL` |
+| Route filtrée | `backend/app/observations.py`, `backend/app/main.py`, `backend/app/database.py` | `feat: ajouter la route GET /api/v1/observations` |
+| Fixtures communes | `backend/tests/conftest.py`, `backend/tests/test_schema.py` | `refactor: partager la base de test entre les fichiers de tests` |
+| Tests | `backend/tests/test_import_oni.py`, `backend/tests/test_observations_api.py` | `test: tester l'import et la route des observations` |
+| Documentation | `README.md`, `etl/README.md`, `docs/` | `docs: documenter l'import et l'API des observations` |
+
 Revue des commits non publiés :
 
 ```powershell
 git log --oneline origin/main..HEAD
-git show --stat HEAD~3 HEAD~2 HEAD~1 HEAD
+git show --stat origin/main..HEAD
 ```
 
 ## Consulter le travail avant publication

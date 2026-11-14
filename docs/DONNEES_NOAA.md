@@ -318,7 +318,8 @@ tests automatisés (section 10).
 Mise en œuvre le 12 novembre 2026 dans [`etl/transform_oni.py`](../etl/transform_oni.py),
 avec pandas et NumPy, et testée par [`etl/tests/test_transform_oni.py`](../etl/tests/test_transform_oni.py).
 La transformation lit et valide le fichier brut, puis produit un CSV. Le chargement
-dans PostgreSQL n'est pas encore développé. Commandes : voir
+dans PostgreSQL est fait par `backend/app/import_oni.py` depuis le 14 novembre 2026
+(voir [BASE_DE_DONNEES.md](BASE_DE_DONNEES.md)). Commandes : voir
 [`etl/README.md`](../etl/README.md).
 
 ### Étapes
@@ -436,7 +437,8 @@ démontrées par les tests, sur de petits fichiers aux valeurs fictives.
 Représentation dans PostgreSQL, mise en place le 14 novembre 2026 : une ligne par
 `(série, SEAS, YR)`, protégée par une contrainte d'unicité, avec des valeurs en
 `NUMERIC(4, 2)` qui conservent exactement les deux décimales publiées. Voir
-[BASE_DE_DONNEES.md](BASE_DE_DONNEES.md). Aucune observation n'est encore importée.
+[BASE_DE_DONNEES.md](BASE_DE_DONNEES.md). Les 921 observations du fichier du
+9 novembre y ont été importées le 14 novembre 2026.
 
 ### Problèmes identifiés et traitement
 

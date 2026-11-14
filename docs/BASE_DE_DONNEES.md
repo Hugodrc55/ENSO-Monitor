@@ -3,7 +3,8 @@
 Schéma mis en place le **14 novembre 2026**, avec l'assistance de Claude :
 modèles SQLAlchemy dans [`backend/app/models.py`](../backend/app/models.py), première
 migration Alembic [`86057118b37f`](../backend/alembic/versions/86057118b37f_schema_initial_des_observations.py).
-Aucune observation NOAA n'est encore importée.
+Le même jour, les 921 observations du fichier NOAA du 9 novembre ont été importées
+par [`backend/app/import_oni.py`](../backend/app/import_oni.py) (section 5).
 
 ## 1. Schéma relationnel
 
@@ -163,30 +164,34 @@ indice qu'une fois sa version confirmée : `climate_index_id` et
 
 ## 5. Hypothèses à confirmer avant l'import
 
-1. **Provenance lisible par un programme.** URL, dates et version figurent
-   aujourd'hui dans [`data/raw/README.md`](../data/raw/README.md), en Markdown.
-   L'import aura besoin d'une forme lisible par un script, ou de ces valeurs en
-   paramètres.
+Les six points relevés lors de la création du schéma ont été tranchés le
+14 novembre 2026, avant le premier import (décisions D23 et D24).
+
+1. **Provenance lisible par un programme.** URL, dates et version figuraient
+   seulement dans [`data/raw/README.md`](../data/raw/README.md), en Markdown.
+   → Une fiche JSON accompagne désormais le fichier brut
+   (`noaa-cpc_oni-ersstv6_2026-11-09.provenance.json`). Elle est validée par
+   Pydantic et son empreinte est contrôlée.
 2. **Date d'extraction retenue.** L'horloge locale indiquait 13:42:23 UTC et
-   l'en-tête `Date` du serveur NOAA 13:42:35 GMT. Proposition : l'en-tête du
-   serveur.
-3. **Lignes de référence.** `source` et `climate_index` sont vides : l'import
-   les créera, ou les retrouvera par leur `code`. La migration ne contient que
-   la structure.
-4. **Révisions NOAA.** Lors d'un import ultérieur, une saison déjà présente peut
-   avoir la même valeur ou une valeur révisée. La règle reste à décider : garder,
-   mettre à jour en la rattachant au nouvel import, ou refuser. La contrainte
-   d'unicité interdit en tout cas d'en garder deux.
+   l'en-tête `Date` du serveur NOAA 13:42:35 GMT. → L'en-tête du serveur,
+   enregistré dans `data_import.downloaded_at`.
+3. **Lignes de référence.** `source` et `climate_index` étaient vides. → L'import
+   les crée au premier passage, puis les retrouve par leur `code`. Une version
+   différente de celle déjà enregistrée est refusée.
+4. **Révisions NOAA.** Une saison déjà présente peut revenir avec la même valeur
+   ou une valeur révisée. → Même valeur : pas de nouvelle ligne. Valeur
+   différente : conflit affiché et import entier refusé, sans rien écrire ni
+   écraser. La règle d'acceptation d'une révision reste à définir.
 5. **Troisième décimale.** `NUMERIC(4, 2)` arrondirait sans erreur une valeur à
-   trois décimales. Le CSV actuel n'en contient aucune, au maximum deux. L'import
-   devra refuser toute valeur plus précise.
-6. **Emplacement du chargement.** Les modèles sont dans `backend/`, alors que la
-   transformation est dans `etl/`. Le programme d'import devra utiliser les deux
-   (voir D15 et D20).
+   trois décimales. → L'import refuse toute valeur de plus de deux décimales.
+6. **Emplacement du chargement.** Les modèles sont dans `backend/`, la
+   transformation dans `etl/`. → L'import est dans `backend/app/import_oni.py`.
+   Il lit le CSV produit par `etl/` : pandas reste hors de l'API.
 
 ## 6. Commandes
 
-Voir le [README](../README.md#base-de-données-postgresql). Les tests du schéma
+Voir le [README](../README.md#base-de-données-postgresql) et sa
+[démonstration complète](../README.md#démonstration--du-fichier-noaa-à-lapi). Les tests du schéma
 ([`backend/tests/test_schema.py`](../backend/tests/test_schema.py)) créent le schéma
 par la migration sur une base jetable, puis vérifient :
 - le refus d'un doublon venant de deux imports différents ;

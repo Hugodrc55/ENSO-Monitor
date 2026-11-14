@@ -4,6 +4,7 @@
 - D10 à D14 : décisions du **9 novembre 2026** (Jour 2, données NOAA), avec l'aide de Claude.
 - D15 à D18 : décisions du **12 novembre 2026** (transformation des données), avec l'aide de Claude.
 - D19 à D22 : décisions du **14 novembre 2026** (base de données PostgreSQL), avec l'aide de Claude.
+- D23 à D26 : décisions du **14 novembre 2026**, en fin de journée (import et API des observations), avec l'aide de Claude.
 
 Ces décisions sont proposées ou mises en œuvre avec l'aide de l'IA, dans le
 périmètre demandé. Leur compréhension et leur validation personnelles par l'étudiant
@@ -242,3 +243,63 @@ restent à confirmer. Aucune validation orale n'est supposée.
   - **doublon refusé** entre deux imports, par une insertion SQL de lignes fictives : `duplicate key value violates unique constraint "uq_observation_climate_index_id_year_season"` ;
   - **15 tests de schéma réussis** ;
   - **les tests détectent les erreurs** : si `data_import_id` est ajouté à l'unicité ou si le contrôle de date est supprimé, deux tests échouent dans chaque cas.
+
+## D23 — Fiche de provenance JSON à côté du fichier brut
+
+- **Besoin** : donner à l'import l'URL, la date d'extraction, la version vérifiée et l'empreinte du fichier, sans les retaper à chaque fois.
+- **Options** : lire le tableau Markdown de `data/raw/README.md` ; passer les valeurs en arguments de la commande ; fiche JSON versionnée à côté du fichier brut.
+- **Choix** : `data/raw/<fichier>.provenance.json`, validée par un modèle Pydantic qui refuse tout champ inconnu et exige des dates avec fuseau horaire. Date d'extraction retenue : l'en-tête `Date` du serveur NOAA (13:42:35 UTC), plutôt que l'horloge locale (13:42:23 UTC).
+- **Avantage** : la provenance est versionnée avec le fichier, relue par un programme et contrôlée : l'empreinte du fichier brut doit correspondre.
+- **Limite** : la fiche est écrite à la main à partir du README. Une erreur de recopie n'est détectée que pour l'empreinte et le format.
+- **Vérification** : tests d'une empreinte fausse et d'une date sans fuseau, tous deux refusés. En base, NDJ 2015 renvoie au fichier, à la ligne 793, à la date d'extraction, à la série `ONI_ERSSTv6` et à la source `NOAA_CPC`.
+
+## D24 — Import dans le backend, sans doublon ni écrasement silencieux
+
+- **Besoin** : charger le CSV transformé avec les modèles existants. Un second import du même fichier ne doit rien ajouter, et une valeur différente ne doit jamais être écrasée sans le dire.
+- **Options** :
+  - emplacement : import dans `etl/` (avec SQLAlchemy et accès aux modèles du backend) ou dans `backend/` (lecture du CSV avec la bibliothèque standard) ;
+  - en cas de valeur différente : écraser, ignorer la ligne, ou refuser tout l'import.
+- **Choix** : `backend/app/import_oni.py`.
+  - Une saison déjà présente avec les mêmes valeurs n'est pas réinsérée.
+  - Une valeur différente est un conflit : il est affiché avec les deux valeurs et l'import entier est refusé (code 1). Tous les contrôles ont lieu avant la première écriture.
+  - Un même fichier (même SHA-256) réutilise l'import existant.
+  - Une valeur de plus de deux décimales est refusée.
+- **Avantage** : réutilise les modèles et la base de test, sans ajouter pandas à l'API. Pas de mélange de deux versions NOAA dans la base, et l'import peut être relancé sans risque.
+- **Limite** :
+  - un fichier NOAA révisé sera refusé tant qu'aucune règle d'acceptation des révisions n'existe ;
+  - l'import fait confiance au CSV : il vérifie le fichier brut que le CSV désigne, mais pas que le CSV en dérive.
+- **Vérification** :
+  - 1er import réel : 921 ajoutées ;
+  - 2e import : 0 ajoutée, 921 identiques, toujours 921 en base et 1 seul import ;
+  - copie modifiée (NDJ 2015 : 2.59 → 2.60) : conflit affiché, rien d'écrit ;
+  - 8 tests d'import ; si un conflit est ignoré volontairement, le test de conflit échoue.
+
+## D25 — Contrat de `GET /api/v1/observations`
+
+- **Besoin** : servir les observations d'une période pour la future courbe, avec des erreurs claires.
+- **Options** : paramètres facultatifs ou obligatoires ; bornes incluses ou exclues ; liste seule ou réponse avec la série.
+- **Choix** :
+  - **Paramètres** `start` et `end` : obligatoires, au format ISO, comparés à `reference_month` et **inclus**, avec descriptions OpenAPI.
+  - **Réponse** : la série (code, version, unité, source) et les observations triées (`reference_month`, `season`, `year`, `oni`), avec `oni` en nombre JSON.
+  - **Codes d'erreur** : 422 pour une date invalide ou manquante et pour un début après la fin ; 404 si la série n'est pas importée ; 503 si la base est injoignable, après un délai de connexion de 5 s.
+- **Avantage** :
+  - contrat explicite pour React ;
+  - unité et source disponibles pour l'affichage demandé par le sujet ;
+  - la route de santé reste indépendante de la base.
+- **Limite** :
+  - une seule série servie (`ONI_ERSSTv6`) ;
+  - pas de pagination, inutile pour 921 lignes au plus ;
+  - une date de début en milieu de mois exclut la saison dont la date de référence est le 1er de ce mois.
+- **Vérification** :
+  - 10 tests de la route ;
+  - requêtes réelles : 200 sur une période, une borne unique et une période vide ; 422 pour une date invalide, un début après la fin et un paramètre manquant ;
+  - base arrêtée : 503 en 5 s, alors que la même requête restait sans réponse plus de 60 s avant l'ajout du délai de connexion.
+
+## D26 — Tests sur une base partagée, une transaction par test
+
+- **Besoin** : tester le schéma, l'import et la route sur un vrai PostgreSQL, sans que les tests dépendent les uns des autres.
+- **Options** : base recréée à chaque test ; SQLite en mémoire ; base PostgreSQL jetable créée une fois par la migration, avec annulation après chaque test.
+- **Choix** : `backend/tests/conftest.py`. Le schéma est créé par la migration en début de série, puis chaque test travaille dans une transaction annulée à la fin (`join_transaction_mode="create_savepoint"`). Les tests de la route remplacent la session de l'API par celle du test.
+- **Avantage** : même moteur qu'en production (contraintes `CHECK`, `NUMERIC`, `make_date`) et tests rapides : 34 en 3,5 s.
+- **Limite** : Docker et la base `enso_monitor_test` sont nécessaires. Les données des tests sont fictives ; les valeurs NOAA réelles ne sont vérifiées que par la démonstration.
+- **Vérification** : les 16 tests existants passent après le regroupement des fixtures, et la série complète passe sans avertissement (`-W error`).
