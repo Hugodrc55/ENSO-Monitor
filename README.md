@@ -6,7 +6,7 @@ validation personnelle à chaque étape. Début : **4 novembre 2026**.
 Dépôt GitHub : [Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor),
 publié depuis le **10 novembre 2026**. Voir [le suivi Git](docs/GIT.md).
 
-## État au 12 novembre 2026
+## État au 14 novembre 2026
 
 - **Application (4 novembre)** : une page React/TypeScript appelle
   `GET /api/v1/health` et affiche si l'API FastAPI répond. Elle gère l'attente,
@@ -22,8 +22,14 @@ publié depuis le **10 novembre 2026**. Voir [le suivi Git](docs/GIT.md).
   saison par son mois central et produit `data/processed/oni_clean.csv`. Sur le
   fichier du 9 novembre, les 921 lignes sont valides. 28 tests Pytest couvrent
   la transformation.
+- **Base de données (14 novembre)** : PostgreSQL 18.7 tourne en local avec
+  Docker Compose. Le schéma `source → climate_index → data_import → observation`
+  ([BASE_DE_DONNEES.md](docs/BASE_DE_DONNEES.md)) est défini par des modèles
+  SQLAlchemy et créé par une migration Alembic. 15 tests vérifient ses
+  contraintes sur une base jetable, dont le refus d'un doublon venant de deux
+  imports différents.
 
-Aucune observation n'est encore stockée en base ni affichée. PostgreSQL, l'API
+La base ne contient encore aucune observation. L'import NOAA, l'API
 d'observations, le graphique et la comparaison historique seront développés aux
 étapes prévues dans [PLAN.md](docs/PLAN.md).
 
@@ -32,7 +38,7 @@ d'observations, le graphique et la comparaison historique seront développés au
 - Node.js **22 à partir de 22.13**, ou **24 et supérieur**, avec npm ; environnement vérifié le 4 novembre : Node 22.18.0, npm 10.9.3 ; le 9 novembre : Node 22.23.4, npm 10.9.9. Ce minimum tient compte d'ESLint, en plus de Vite.
 - Python **3.13** et Git ; environnement vérifié le 4 novembre : Python 3.13.7, Git 2.50.1 ; le 9 novembre : Python 3.13.17, Git 2.56.0.
 - PowerShell sous Windows pour les commandes ci-dessous.
-- Ni PostgreSQL ni Docker ne sont nécessaires à ce stade.
+- Docker Desktop avec Docker Compose, pour faire tourner PostgreSQL sans l'installer sur la machine ; environnement vérifié le 14 novembre : Docker 29.9.2, Docker Compose v5.6.1, image `postgres:18.7-alpine`.
 
 Les dépendances JavaScript sont figées dans `frontend/package-lock.json`.
 Les versions Python directes sont fixées dans `backend/requirements*.txt` (API)
@@ -48,10 +54,12 @@ python -m venv backend/.venv
 python -m venv etl/.venv
 .\etl\.venv\Scripts\python.exe -m pip install -r etl/requirements-dev.txt
 npm.cmd --prefix frontend ci
+Copy-Item .env.example .env
 ```
 
-L'API et l'ETL ont chacun leur environnement Python : l'API n'installe pas
-pandas. L'appel direct à Python dans `.venv` évite de modifier la politique d'exécution
+Dans `.env`, remplacer `remplacer-par-un-mot-de-passe-local` par un mot de passe
+local. Ce fichier est exclu de Git. L'API et l'ETL ont chacun leur environnement
+Python : l'API n'installe pas pandas. L'appel direct à Python dans `.venv` évite de modifier la politique d'exécution
 PowerShell pour activer l'environnement. `npm.cmd` évite le même problème avec
 le script `npm.ps1`. Les bibliothèques PDF utilisées par l'assistant pour lire
 le sujet ne sont pas des dépendances de l'application.
@@ -128,6 +136,35 @@ recalcul ni correction. La commande signale chaque ligne ignorée ou rejetée et
 se termine avec le code 1 si une ligne est rejetée. Détails : [etl/README.md](etl/README.md)
 et [DONNEES_NOAA.md, section 10](docs/DONNEES_NOAA.md#10-transformation-du-fichier-etl).
 
+## Base de données PostgreSQL
+
+PostgreSQL tourne dans un conteneur, décrit par [`compose.yaml`](compose.yaml) et
+configuré par `.env`. Il n'écoute que sur `127.0.0.1`. Depuis la racine du dépôt :
+
+```powershell
+docker compose up -d --wait db
+.\backend\.venv\Scripts\python.exe -m alembic -c backend/alembic.ini upgrade head
+.\backend\.venv\Scripts\python.exe -m alembic -c backend/alembic.ini current
+```
+
+`upgrade head` crée le schéma ; `current` doit afficher `86057118b37f (head)`.
+SQLAlchemy et Alembic lisent la même variable `DATABASE_URL`, définie dans
+`.env`. L'API ne se connecte pas encore à la base : elle démarre et répond à
+`/api/v1/health` même quand PostgreSQL est arrêté.
+
+Autres commandes utiles :
+
+```powershell
+docker compose exec db psql -U enso -d enso_monitor -c "\dt"     # lister les tables
+docker compose exec db createdb -U enso enso_monitor_test       # base jetable des tests, une seule fois
+.\backend\.venv\Scripts\python.exe -m alembic -c backend/alembic.ini upgrade head --sql   # SQL sans l'exécuter
+docker compose stop db                                          # arrêter ; les données restent dans le volume
+```
+
+`downgrade` supprime les tables : ne l'utiliser que sur une base de test. Le
+schéma, ses contraintes et les hypothèses à confirmer avant l'import sont décrits
+dans [BASE_DE_DONNEES.md](docs/BASE_DE_DONNEES.md).
+
 ## Vérifications
 
 ```powershell
@@ -138,6 +175,11 @@ Pop-Location
 npm.cmd --prefix frontend run lint
 npm.cmd --prefix frontend run build
 ```
+
+Les tests du backend comprennent ceux du schéma (`backend/tests/test_schema.py`).
+Ils exigent PostgreSQL démarré et la base `enso_monitor_test`, désignée par
+`TEST_DATABASE_URL`, qu'ils vident à chaque exécution. Sans cette variable, ils
+sont ignorés.
 
 `build` lance d'abord la vérification TypeScript stricte, puis Vite produit `frontend/dist/`.
 Pour consulter ce résultat localement, avec l'API toujours lancée :
@@ -181,7 +223,11 @@ frontend/                  React, TypeScript strict, Vite et ESLint
   src/styles.css           Présentation minimale
 backend/
   app/main.py              Application FastAPI, schéma Pydantic et route santé
+  app/database.py          DATABASE_URL, moteur SQLAlchemy, conventions de nommage
+  app/models.py            Modèles source, climate_index, data_import, observation
+  alembic.ini, alembic/    Configuration et migrations Alembic
   tests/test_health.py     Vérification du contrat HTTP initial
+  tests/test_schema.py     Contraintes du schéma, sur une base PostgreSQL jetable
   requirements*.txt        Dépendances de l'API et des tests
 etl/
   transform_oni.py         Validation, doublons, datation et export CSV des observations ONI
@@ -190,8 +236,11 @@ etl/
 data/
   raw/                     Fichier NOAA brut daté, empreinte SHA-256 et provenance
   processed/               CSV produit par l'ETL (régénéré, non versionné)
+compose.yaml               Service PostgreSQL local
+.env.example               Modèle de configuration locale (le vrai .env est exclu de Git)
 docs/
   DONNEES_NOAA.md          Source ONI ERSSTv6 : colonnes, saisons, limites, règles de transformation
+  BASE_DE_DONNEES.md       Schéma relationnel, contraintes, provenance, hypothèses avant import
   EXIGENCES.md             Synthèse des huit pages du sujet officiel
   PLAN.md                  Préparation progressive et planning officiel prévisionnel
   DECISIONS.md             Choix, alternatives, limites et vérifications
@@ -203,9 +252,11 @@ AGENTS.md                  Consignes pour les prochaines sessions assistées
 
 ## Git, configuration et données
 
-Aucune variable d'environnement ou clé n'est requise aujourd'hui. Ne pas créer
-de `.env` contenant des secrets dans Git. L'exemple de réponse santé est une réponse
-technique, pas une observation scientifique.
+La configuration locale tient dans `.env`, copié depuis `.env.example`. On y trouve
+les variables du service PostgreSQL, `DATABASE_URL` et `TEST_DATABASE_URL`. `.env`
+contient un mot de passe : il est exclu de Git et ne doit jamais être commité.
+`.env.example` ne contient aucun vrai secret. L'exemple de réponse santé est une
+réponse technique, pas une observation scientifique.
 
 Les dépendances, `.venv`, `dist`, données de travail, fichiers temporaires et le PDF
 officiel sont ignorés. Ne pas utiliser `git add -f` pour contourner ces exclusions.
@@ -222,6 +273,9 @@ la documentation et les vérifications. Au Jour 2, Claude a assisté la lecture
 des sources NOAA, le téléchargement, les contrôles du fichier et la documentation.
 Le 12 novembre, Claude a écrit le module de transformation, ses tests et la
 documentation associée, à partir du cahier des charges de l'étudiant.
+Le 14 novembre, Claude a mis en place PostgreSQL avec Docker Compose et écrit les
+modèles, la migration, les tests du schéma et leur documentation, à partir du
+cahier des charges de l'étudiant.
 Ces contributions sont détaillées dans le journal. La compréhension personnelle
 et la validation par l'étudiant restent à confirmer ; elles ne sont pas déduites
 du code généré ou des tests réussis.
@@ -241,5 +295,5 @@ recalculer l'empreinte avec `Get-FileHash` et la comparer à `SHA256SUMS`.
 - Sujet officiel local, huit pages : voir [sa synthèse](docs/EXIGENCES.md).
 - Sources NOAA consultées le 9 novembre 2026 : voir [la liste](docs/DONNEES_NOAA.md#sources-consultées-le-9-novembre-2026).
 
-Étape suivante prévue : modèle PostgreSQL, SQLAlchemy et migrations Alembic
-(voir [PLAN.md](docs/PLAN.md)).
+Étape suivante prévue : import des observations NOAA dans PostgreSQL, avec leur
+provenance (voir [PLAN.md](docs/PLAN.md)).

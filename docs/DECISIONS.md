@@ -3,6 +3,7 @@
 - D01 à D09 : décisions initiales du **4 novembre 2026** (Jour 1), avec l'aide de Codex.
 - D10 à D14 : décisions du **9 novembre 2026** (Jour 2, données NOAA), avec l'aide de Claude.
 - D15 à D18 : décisions du **12 novembre 2026** (transformation des données), avec l'aide de Claude.
+- D19 à D22 : décisions du **14 novembre 2026** (base de données PostgreSQL), avec l'aide de Claude.
 
 Ces décisions sont proposées ou mises en œuvre avec l'aide de l'IA, dans le
 périmètre demandé. Leur compréhension et leur validation personnelles par l'étudiant
@@ -175,3 +176,69 @@ restent à confirmer. Aucune validation orale n'est supposée.
 - **Avantage** : un code de remplissage (−99,90 par exemple) ou une erreur d'unité est arrêté, alors que `NDJ 2015` (+2,59 °C), maximum de la série, reste valide. Le code 1 empêche un traitement automatique suivant, comme l'import, de continuer sans examen.
 - **Limite** : les bornes résultent d'un raisonnement physique (l'eau de mer gèle vers −2 °C), pas d'une source NOAA. Aucune des pages NOAA consultées ne définit de code de valeur manquante pour ce fichier.
 - **Vérification** : un test rejette `-99.90`. Si les bornes sont élargies volontairement à ±100, ce test échoue.
+
+## D19 — PostgreSQL local dans Docker Compose
+
+- **Besoin** : une base PostgreSQL de développement et de test, simple à démarrer et à effacer.
+- **Options** : installer PostgreSQL sous Windows ; service PostgreSQL seul dans Docker Compose ; base hébergée.
+- **Choix** : service `db` dans `compose.yaml`, avec l'image officielle `postgres:18.7-alpine` (version exacte fixée). Le service n'écoute que sur `127.0.0.1`. Un volume nommé conserve les données et un contrôle de santé `pg_isready` est configuré. Les identifiants viennent de `.env`, et le mot de passe est obligatoire.
+- **Avantage** :
+  - Docker Desktop était déjà installé sur la machine ;
+  - aucune installation système, version identique pour toute personne qui clone le dépôt ;
+  - point de départ du Compose de déploiement à documenter.
+- **Limite** : Docker Desktop doit être lancé. L'image fait 400 Mo environ ; son premier téléchargement a pris plusieurs minutes.
+- **Vérification** :
+  - `docker compose config` et `docker compose up -d --wait db` : service à l'état *healthy*, PostgreSQL 18.7 ;
+  - après un arrêt et un redémarrage, la révision Alembic est toujours présente : le volume conserve les données.
+
+## D20 — Modèles et migrations dans `backend/`, une seule `DATABASE_URL`
+
+- **Besoin** : définir le schéma une seule fois, pour l'API et pour le futur import.
+- **Options** : modèles dans `etl/` ; dans `backend/` ; paquet partagé séparé.
+- **Choix** : `backend/app/models.py` et `backend/alembic/`. L'API sera le principal lecteur de la base, et le backend contient déjà Pydantic et pytest.
+  - `app/database.py` lit `DATABASE_URL`, depuis l'environnement ou le `.env` de la racine. `alembic/env.py` utilise la même fonction.
+  - Le pilote est psycopg 3 : URL `postgresql+psycopg://…`.
+- **Justification des dépendances** :
+  - SQLAlchemy 2.1.8 : modèles et requêtes ;
+  - Alembic 1.20.1 : migrations versionnées ;
+  - psycopg 3.3.9 avec l'extra `binary` : pilote PostgreSQL, fourni avec sa bibliothèque cliente sous Windows ;
+  - python-dotenv 1.2.4 : lecture de `.env`, avec reprise des variables `${POSTGRES_…}` pour ne pas écrire le mot de passe deux fois.
+- **Avantage** : un seul endroit pour le schéma et une seule variable de connexion. L'API n'importe pas encore la base et démarre sans elle.
+- **Limite** : le futur import devra utiliser ces modèles alors que la transformation est dans `etl/`. Son emplacement reste à décider (voir D15).
+- **Vérification** :
+  - `alembic check` ne détecte aucune différence entre les modèles et la migration ;
+  - base arrêtée, `GET /api/v1/health` renvoie toujours HTTP 200 ;
+  - un environnement neuf installé depuis `backend/requirements-dev.txt` passe les 16 tests.
+
+## D21 — Chaîne de provenance Source → Indice → Import → Observation
+
+- **Besoin** : retrouver pour chaque observation sa source, son indice et l'import d'origine (sujet, page 5). Ne pas attribuer de version à un fichier non confirmé, et distinguer la date d'extraction de la date de chargement.
+- **Options** : une table d'observations avec des colonnes de provenance répétées ; quatre tables reliées.
+- **Choix** : `source` → `climate_index` → `data_import` → `observation`.
+  - La version confirmée de la série est dans `climate_index.version`.
+  - Chaque import enregistre `file_name`, `source_url`, `sha256` (unique), `downloaded_at` (date d'extraction), `source_last_modified`, `version_evidence` (obligatoire) et `imported_at` (date du chargement, fixée par PostgreSQL).
+  - Chaque observation garde `source_line`.
+- **Avantage** : la provenance est enregistrée une fois par fichier, pas 921 fois. Les quatre entités correspondent à celles demandées pour l'UML.
+- **Limite** : `source` et `climate_index` sont encore vides ; l'import devra les créer. La provenance n'existe aujourd'hui qu'en Markdown (`data/raw/README.md`).
+- **Vérification** : tests sur la base jetable. Un même SHA-256 est refusé, et la date de chargement est fixée par la base et postérieure à l'extraction. Un import fictif daté dans le futur a été refusé par `ck_data_import_imported_after_download`.
+
+## D22 — Intégrité : unicité sans l'import, clé composite, types exacts, contrôles
+
+- **Besoin** : qu'aucun programme ne puisse enregistrer deux fois une saison, une date incohérente ou une valeur impossible.
+- **Options** : contrôles dans le code Python seulement ; contraintes dans PostgreSQL.
+- **Choix** :
+  - **Unicité** : `UNIQUE (climate_index_id, year, season)`, sans `data_import_id`.
+  - **Cohérence indice / import** : clé étrangère composite `(data_import_id, climate_index_id)` → `data_import (id, climate_index_id)`.
+  - **Types** : `DATE` pour `reference_month`, `SMALLINT` pour `year`, `NUMERIC(4, 2)` pour `total_c` et `anom_c`.
+  - **Contrôles `CHECK`** : la saison, l'année (≥ 1950), la date de référence (mois central), les bornes physiques de D18 et `source_line > 1`.
+  - **Index** : `(climate_index_id, reference_month)` pour le filtre par période.
+- **Avantage** : un doublon est refusé même s'il vient d'un autre import, ou d'un autre programme que l'ETL. Les deux décimales publiées sont conservées exactement.
+- **Limite** :
+  - `NUMERIC(4, 2)` arrondirait sans erreur une troisième décimale : l'import devra la refuser ;
+  - l'index apporte peu sur 921 lignes ;
+  - les conventions de nommage allongent les noms des contraintes.
+- **Vérification** :
+  - **SQL relu** avec `alembic upgrade head --sql` ;
+  - **doublon refusé** entre deux imports, par une insertion SQL de lignes fictives : `duplicate key value violates unique constraint "uq_observation_climate_index_id_year_season"` ;
+  - **15 tests de schéma réussis** ;
+  - **les tests détectent les erreurs** : si `data_import_id` est ajouté à l'unicité ou si le contrôle de date est supprimé, deux tests échouent dans chaque cas.

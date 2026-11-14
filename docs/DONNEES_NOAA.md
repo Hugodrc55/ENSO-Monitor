@@ -423,8 +423,8 @@ démontrées par les tests, sur de petits fichiers aux valeurs fictives.
 - **Provenance de l'extraction.** Le CSV indique le fichier et la ligne d'origine,
   mais pas l'URL, la date d'extraction ni le `Last-Modified`. Ces informations
   (déjà consignées dans `data/raw/README.md`) seront enregistrées lors du chargement
-  en base, avec le code de série `ONI_ERSSTv6`. Elles alimenteront les entités
-  *Indice*, *Source* et *Import* demandées pour l'UML.
+  en base, avec le code de série `ONI_ERSSTv6`, dans les tables `source`,
+  `climate_index` et `data_import` (voir [BASE_DE_DONNEES.md](BASE_DE_DONNEES.md#4-provenance--où-lenregistrer)).
 - **Année maximale.** Elle dépend de l'horloge de la machine. Pour un fichier réel,
   toutes les années sont antérieures à sa date de téléchargement : le résultat ne
   change pas.
@@ -433,21 +433,21 @@ démontrées par les tests, sur de petits fichiers aux valeurs fictives.
 - **Hors périmètre.** Le choix du seuil (`>=` ou `>`, section 2) et la
   détection des épisodes ne font pas partie de la transformation.
 
-Piste de représentation dans PostgreSQL, non implémentée : une ligne par
-`(série, SEAS, YR)` avec une contrainte d'unicité. Les valeurs seraient stockées
-en `NUMERIC` plutôt qu'en `float`, pour conserver exactement les deux décimales
-publiées.
+Représentation dans PostgreSQL, mise en place le 14 novembre 2026 : une ligne par
+`(série, SEAS, YR)`, protégée par une contrainte d'unicité, avec des valeurs en
+`NUMERIC(4, 2)` qui conservent exactement les deux décimales publiées. Voir
+[BASE_DE_DONNEES.md](BASE_DE_DONNEES.md). Aucune observation n'est encore importée.
 
 ### Problèmes identifiés et traitement
 
 | Problème | Situation au 9 novembre 2026 | Traitement |
 | --- | --- | --- |
-| Doublons | Aucun | Copies identiques ignorées, versions contradictoires rejetées ; contrainte d'unicité prévue en base |
+| Doublons | Aucun | Copies identiques ignorées, versions contradictoires rejetées ; contrainte d'unicité en base, y compris entre deux imports |
 | Valeurs manquantes | Aucune | Ligne rejetée avec son motif ; jamais de valeur inventée ou interpolée |
 | Dates incohérentes | Aucune ; DJF et NDJ demandent une règle claire | Règle du mois central ; trous de la série signalés |
 | Année incomplète | 2026 : 9 saisons | Normal ; rien n'est complété |
 | Révisions NOAA | Valeurs récentes provisoires ; v5 et v6 différentes | Nouveau fichier daté à chaque extraction ; comparaison entre extractions à développer |
-| Confusion ONI/RONI | Fichiers distincts | Un seul fichier ONI, nommé explicitement ; code de série prévu en base |
+| Confusion ONI/RONI | Fichiers distincts | Un seul fichier ONI, nommé explicitement ; code de série en base, et import rattaché obligatoirement à sa série |
 
 ## Sources consultées le 9 novembre 2026
 

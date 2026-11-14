@@ -12,6 +12,9 @@
 - **Premier push le 10 novembre 2026** : les sept commits des 8 et 9 novembre ont
   été publiés. `git rev-parse HEAD` et `git ls-remote origin refs/heads/main`
   renvoyaient le même SHA, `6c4d9fb`.
+- **Push du 12 novembre 2026** : les quatre commits de la transformation ont été
+  publiés ; SHA local et distant identiques, `17a60c1`.
+- Chaque publication suit un accord explicite de l'étudiant.
 
 ## Commits du Jour 1
 
@@ -60,6 +63,17 @@ L'empreinte doit être `118c563331335c8649cdc2677e6be7ae89d1259d901345fcddbc2857
 | Transformation et ses dépendances | `etl/__init__.py`, `etl/transform_oni.py`, `etl/requirements.txt` | `feat: ajouter la transformation des observations ONI` |
 | Tests de la transformation | `etl/tests/`, `etl/requirements-dev.txt` | `test: ajouter les tests de transformation ONI` |
 | Documentation du traitement | `README.md`, `etl/README.md`, `docs/` | `docs: documenter le pipeline de transformation` |
+
+## Commits du 14 novembre 2026
+
+| Ensemble cohérent | Fichiers | Message |
+| --- | --- | --- |
+| Service PostgreSQL local | `compose.yaml`, `.env.example` | `chore: ajouter PostgreSQL local avec Docker Compose` |
+| Modèles, configuration et première migration | `backend/requirements.txt`, `backend/app/database.py`, `backend/app/models.py`, `backend/alembic.ini`, `backend/alembic/` | `feat: ajouter le schéma PostgreSQL des observations` |
+| Tests du schéma | `backend/tests/test_schema.py` | `test: vérifier les contraintes du schéma PostgreSQL` |
+| Documentation | `README.md`, `docs/` | `docs: documenter le schéma PostgreSQL et sa migration` |
+
+`.env`, qui contient le mot de passe local, est exclu de Git.
 
 Revue des commits non publiés :
 

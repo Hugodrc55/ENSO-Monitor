@@ -389,6 +389,9 @@ Quatre commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) 
 3. `test: ajouter les tests de transformation ONI`
 4. `docs: documenter le pipeline de transformation`
 
+Publication : push le 12 novembre, après l'accord explicite de l'étudiant. SHA
+local et distant identiques, `17a60c1`.
+
 ### Contributions de l'IA
 
 **Fourni par l'étudiant** : le cahier des charges de la session, c'est-à-dire
@@ -408,3 +411,122 @@ cas de test.
   Ils seront enregistrés lors du chargement en base.
 - L'année maximale acceptée dépend de l'horloge de la machine.
 - Aucune comparaison entre deux extractions NOAA n'existe encore.
+
+## 14 novembre 2026 — Base PostgreSQL, modèles et première migration
+
+### Périmètre
+
+Mise en place de PostgreSQL en local, des modèles SQLAlchemy et de la première
+migration Alembic. Exclus : import des observations NOAA, API d'observations,
+graphiques.
+
+### État de départ
+
+- `main` propre et synchronisée avec `origin/main` (`17a60c1`) ; aucune
+  modification non commitée.
+- **Base de données** : aucune configuration existante (ni Compose, ni `.env`, ni
+  modèles). Docker Desktop était installé mais arrêté, aucun PostgreSQL n'était
+  installé et le port 5432 était libre.
+- **CSV de la transformation** : présent et inchangé (SHA-256 `4b1f7a77…`). Ses
+  colonnes ont été relues ; `total_c` et `anom_c` ont au plus deux décimales.
+- **Provenance** : dans `data/raw/README.md` (URL, dates, `Last-Modified`,
+  SHA-256), avec la version ERSSTv6 confirmée le 9 novembre (D10). Rien ne manque,
+  mais ces informations ne sont lisibles qu'en Markdown.
+- **Sujet** : pages 3 et 5 relues (couche données, entités UML, schéma
+  relationnel). Les huit pages avaient été lues le 12 novembre.
+
+### Travail réalisé
+
+- **Service PostgreSQL** : `compose.yaml` décrit un service `postgres:18.7-alpine`
+  accessible sur `127.0.0.1`, avec un volume nommé et un contrôle de santé.
+  `.env.example` sert de modèle. Le `.env` local, exclu de Git, a été créé depuis
+  ce modèle avec un mot de passe aléatoire.
+- **Modèles** : `backend/app/database.py` (lecture de `DATABASE_URL`, conventions
+  de nommage) et `backend/app/models.py` (quatre tables).
+- **Migration** : `86057118b37f`, générée par `alembic revision --autogenerate`,
+  puis relue.
+- **Tests** : `backend/tests/test_schema.py`, 9 fonctions et 15 cas, sur une base
+  jetable.
+- **Dépendances de l'API** : SQLAlchemy 2.1.8, Alembic 1.20.1, psycopg 3.3.9
+  (`binary`) et python-dotenv 1.2.4.
+- **Documentation** :
+  - `docs/BASE_DE_DONNEES.md`, nouveau ;
+  - README ;
+  - décisions D19 à D22 ;
+  - plan, guide Git et `DONNEES_NOAA.md`.
+
+### Constats et corrections
+
+- Docker Desktop a été démarré pour la session. Le premier téléchargement de
+  l'image (environ 400 Mo) a duré plus de six minutes.
+- Pour PostgreSQL 18, l'image officielle range ses données sous `/var/lib/postgresql`
+  (`PGDATA=/var/lib/postgresql/18/docker`). Ce point a été vérifié dans la
+  configuration de l'image avant de fixer le volume.
+- Le script SQL de test du doublon contenait deux erreurs, corrigées avant de
+  conclure :
+  - des dates traitées comme du texte dans un `UNION ALL`, d'où une conversion
+    `::timestamptz` ajoutée ;
+  - un second import fictif daté du 9 décembre 2026, c'est-à-dire dans le futur.
+    `ck_data_import_imported_after_download` l'a refusé, ce qui est le
+    comportement attendu ; la date fictive a été remplacée par le 10 novembre.
+
+  À chaque essai, la transaction a été annulée et aucune ligne n'est restée.
+- Relecture : trois lignes de test trop longues et un message de `compose.yaml`
+  raccourcis.
+
+### Vérifications réelles
+
+| Vérification exécutée | Résultat observé |
+| --- | --- |
+| `docker compose config`, puis `docker compose up -d --wait db` | Fichier valide ; service *healthy* ; PostgreSQL 18.7 sur `127.0.0.1:5432` |
+| `alembic revision --autogenerate` | 4 tables et 1 index détectés ; révision `86057118b37f` |
+| `alembic upgrade head --sql` | SQL relu : une transaction, 4 tables, contraintes nommées |
+| Base jetable `enso_monitor_test` : `upgrade head`, puis `current` | `86057118b37f (head)` ; tables, contraintes et index présents (`\dt`, `pg_constraint`, `pg_indexes`) |
+| Lignes fictives : même saison chargée par deux imports | Refus par `uq_observation_climate_index_id_year_season` ; transaction annulée, 0 ligne restante |
+| `downgrade base`, puis `upgrade head`, sur la base jetable | Seule `alembic_version` reste, puis retour à `head` |
+| `python -m pytest -W error` depuis `backend` | **16 passed** (1 test de santé, 15 tests de schéma) en 1,35 s |
+| Erreurs volontaires dans une copie de la migration : `data_import_id` ajouté à l'unicité, contrôle de date supprimé | 2 tests en échec dans chaque cas ; migration restaurée à l'identique, 16 passed |
+| Base de développement `enso_monitor` : `upgrade head`, puis `current` | `86057118b37f (head)` ; 0 observation |
+| `alembic check` | « No new upgrade operations detected » : modèles et migration identiques |
+| Base arrêtée : API lancée, puis `GET /api/v1/health` | HTTP 200 ; test de santé : 1 passed |
+| Arrêt et redémarrage du service | Révision toujours présente : le volume conserve les données |
+| Environnement neuf installé depuis `backend/requirements-dev.txt` | `pip check` sans conflit ; 16 passed |
+| `git check-ignore` | `.env` ignoré ; `.env.example` suivi |
+
+Non relancés ce jour : tests de l'ETL, lint et build du frontend (aucun de ces
+fichiers n'a été modifié), contrôle dans un navigateur.
+
+### Git
+
+Quatre commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
+
+1. `chore: ajouter PostgreSQL local avec Docker Compose`
+2. `feat: ajouter le schéma PostgreSQL des observations`
+3. `test: vérifier les contraintes du schéma PostgreSQL`
+4. `docs: documenter le schéma PostgreSQL et sa migration`
+
+### Contributions de l'IA
+
+**Fourni par l'étudiant** : le cahier des charges de la session :
+- la stack ;
+- la chaîne Source → Indice → Import → Observation ;
+- les exigences de provenance et d'intégrité, dont la contrainte d'unicité de départ ;
+- les vérifications attendues.
+
+**Réalisé par Claude** :
+- vérification de l'environnement et démarrage de Docker Desktop ;
+- écriture du service Compose, des modèles, de la migration, des tests et de
+  cette documentation ;
+- installation des dépendances ;
+- exécution des vérifications ci-dessus.
+
+### Avant l'import
+
+Les hypothèses à confirmer sont listées dans
+[BASE_DE_DONNEES.md](BASE_DE_DONNEES.md#5-hypothèses-à-confirmer-avant-limport) :
+- provenance lisible par un programme ;
+- date d'extraction retenue ;
+- création des lignes de référence ;
+- règle en cas de révision NOAA ;
+- refus d'une troisième décimale ;
+- emplacement du programme d'import.

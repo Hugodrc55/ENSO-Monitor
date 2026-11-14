@@ -10,7 +10,7 @@ sera expliqué dans le journal, et chaque nouvelle étape attendra l'accord de l
 | 1 | Dépôt Git, documentation, React strict, santé FastAPI, connexion vérifiée | Réalisé avec assistance IA ; validation personnelle attendue |
 | 2 | Étudier NOAA ONI ERSSTv6 : format, unité, périodes, source, version et limites | Réalisé le 9 novembre avec assistance IA ; validation personnelle attendue |
 | 3 | Transformer la série avec Python, Pandas et NumPy (contrôles, doublons, dates du mois central) ; premier test de données | Réalisé le 12 novembre avec assistance IA : transformation et 28 tests Pytest |
-| 4 | Modéliser PostgreSQL, contraintes SQL, SQLAlchemy et migrations Alembic | Non commencé |
+| 4 | Modéliser PostgreSQL, contraintes SQL, SQLAlchemy et migrations Alembic | Réalisé le 14 novembre avec assistance IA : PostgreSQL local, quatre tables, première migration et 15 tests du schéma |
 | 5 | Import authentique en base, provenance (source, import, date d'extraction), test d'import | Non commencé |
 | 6 | Exposer les observations avec FastAPI et documenter le contrat OpenAPI | Non commencé |
 | 7 | Filtres temporels, validations et test API sur période + entrée invalide | Non commencé |
@@ -62,8 +62,15 @@ la préparation réelle sur environ un mois.
 - Une valeur impossible (code de remplissage, erreur d'unité) acceptée comme mesure : bornes physiques larges (D18).
 - Le chargement en base devra partager le modèle de données avec l'API : organisation de `etl/` à réexaminer (D15).
 
+## Risques identifiés lors de la mise en place de la base (14 novembre)
+
+- `NUMERIC(4, 2)` arrondirait sans erreur une troisième décimale : l'import devra refuser toute valeur plus précise (D22).
+- Une révision NOAA d'une saison déjà importée se heurtera à la contrainte d'unicité : règle de mise à jour à décider avant l'import.
+- La provenance du fichier brut n'existe qu'en Markdown : la rendre lisible par le programme d'import.
+- Les tests du schéma exigent Docker Desktop lancé et la base `enso_monitor_test`.
+
 ## Étape suivante
 
-Modèle PostgreSQL, contraintes SQL, SQLAlchemy et migrations Alembic (ligne 4 du
-tableau). Le schéma s'appuiera sur le fichier produit par la transformation,
-décrit dans [DONNEES_NOAA.md](DONNEES_NOAA.md#10-transformation-du-fichier-etl).
+Import authentique des observations dans PostgreSQL, avec leur provenance (ligne 5
+du tableau). Les hypothèses à confirmer d'abord sont listées dans
+[BASE_DE_DONNEES.md](BASE_DE_DONNEES.md#5-hypothèses-à-confirmer-avant-limport).
