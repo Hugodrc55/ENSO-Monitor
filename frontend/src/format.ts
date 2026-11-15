@@ -30,6 +30,11 @@ export function formatDate(isoDate: string): string {
   return `${day === 1 ? '1er' : day} ${month} ${isoDate.slice(0, 4)}`
 }
 
+/** « mai 1997 » pour « 1997-05-01 ». */
+export function formatMonthLong(isoDate: string): string {
+  return `${LONG_MONTHS[Number(isoDate.slice(5, 7)) - 1] ?? ''} ${isoDate.slice(0, 4)}`
+}
+
 /** Code NOAA et année : « NDJ 2015 ». */
 export function seasonLabel(observation: Observation): string {
   return `${observation.season} ${observation.year}`

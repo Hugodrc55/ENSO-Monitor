@@ -1,3 +1,4 @@
+import { EpisodeComparison } from './components/EpisodeComparison'
 import { OniExplorer } from './components/OniExplorer'
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
         </p>
 
         <OniExplorer />
+        <EpisodeComparison />
       </main>
 
       <footer>

@@ -1,4 +1,5 @@
 import type { Observation } from './api'
+import { monthIndex } from './format'
 
 /**
  * Seuil NOAA, en °C : période chaude (El Niño) si ONI ≥ +0,5, froide (La Niña)
@@ -6,6 +7,9 @@ import type { Observation } from './api'
  * Source et choix de ≥ plutôt que > : docs/DONNEES_NOAA.md, section 2.
  */
 export const NOAA_THRESHOLD = 0.5
+
+export const isWarm = (value: number): boolean => value >= NOAA_THRESHOLD
+export const isCold = (value: number): boolean => value <= -NOAA_THRESHOLD
 
 export type PeriodSummary = {
   count: number
@@ -31,4 +35,26 @@ export function summarize(observations: readonly Observation[]): PeriodSummary |
     if (observation.oni < lowest.oni) lowest = observation
   }
   return { count: observations.length, first, last, highest, lowest }
+}
+
+/**
+ * Longueur de la plus longue suite de saisons consécutives qui vérifient la
+ * condition. Un mois manquant entre deux saisons interrompt la suite.
+ */
+export function longestRun(
+  observations: readonly Observation[],
+  condition: (value: number) => boolean,
+): number {
+  let longest = 0
+  let current = 0
+  let previousMonth: number | null = null
+
+  for (const observation of observations) {
+    const month = monthIndex(observation.reference_month)
+    const consecutive = previousMonth !== null && month === previousMonth + 1
+    current = condition(observation.oni) ? (consecutive ? current + 1 : 1) : 0
+    longest = Math.max(longest, current)
+    previousMonth = month
+  }
+  return longest
 }
