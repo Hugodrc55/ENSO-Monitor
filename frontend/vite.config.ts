@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 // En développement, le navigateur appelle Vite, qui transmet /api à FastAPI.
@@ -21,5 +21,9 @@ export default defineConfig({
     port: 4173,
     strictPort: true,
     proxy: apiProxy,
+  },
+  test: {
+    // Les composants sont rendus dans un DOM simulé ; aucun navigateur n'est lancé.
+    environment: 'jsdom',
   },
 })
