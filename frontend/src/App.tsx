@@ -1,43 +1,6 @@
-import { useEffect, useState } from 'react'
-import { fetchHealth } from './api'
-
-type ConnectionState =
-  | { status: 'loading' }
-  | { status: 'success' }
-  | { status: 'error' }
+import { OniExplorer } from './components/OniExplorer'
 
 export default function App() {
-  const [connection, setConnection] = useState<ConnectionState>({ status: 'loading' })
-  const [attempt, setAttempt] = useState(0)
-
-  useEffect(() => {
-    const controller = new AbortController()
-    // Une requête qui ne répond pas ne doit pas laisser l'écran en attente.
-    const timeout = window.setTimeout(() => controller.abort(), 5000)
-    let active = true
-
-    fetchHealth(controller.signal)
-      .then(() => {
-        if (active) setConnection({ status: 'success' })
-      })
-      .catch(() => {
-        if (active) setConnection({ status: 'error' })
-      })
-      .finally(() => window.clearTimeout(timeout))
-
-    // Ignore une ancienne réponse après démontage ou nouvelle tentative.
-    return () => {
-      active = false
-      window.clearTimeout(timeout)
-      controller.abort()
-    }
-  }, [attempt])
-
-  function retry() {
-    setConnection({ status: 'loading' })
-    setAttempt((previous) => previous + 1)
-  }
-
   return (
     <>
       <header className="site-header">
@@ -50,47 +13,20 @@ export default function App() {
 
       <main>
         <p className="eyebrow">El Niño & La Niña</p>
-        <h1>Un regard sur les variations du Pacifique.</h1>
+        <h1>Les anomalies de température du Pacifique depuis 1950.</h1>
         <p className="introduction">
-          ENSO Monitor est un projet d’exploration des données climatiques de la NOAA.
-          L’application se construit progressivement : cette première version vérifie
-          la connexion au service.
+          L’indice ONI de la NOAA mesure l’écart de température de surface de la mer dans la
+          région Niño 3.4, au centre du Pacifique équatorial. Au-dessus de +0,5 °C, la NOAA parle
+          de conditions El Niño ; au-dessous de −0,5 °C, de conditions La Niña.
         </p>
 
-        <section className="connection-card" aria-labelledby="connection-title">
-          <div className="card-heading">
-            <h2 id="connection-title">État du service</h2>
-            <span className="step-label">Première étape</span>
-          </div>
-
-          <div className="connection-message" role="status" aria-live="polite" aria-atomic="true">
-            <span className={`status-dot ${connection.status}`} aria-hidden="true" />
-            <div>
-              <p className="status-title">
-                {connection.status === 'loading' && 'Connexion en cours…'}
-                {connection.status === 'success' && 'Service accessible'}
-                {connection.status === 'error' && 'Service indisponible'}
-              </p>
-              <p className="status-description">
-                {connection.status === 'loading' && 'Nous vérifions la réponse du service.'}
-                {connection.status === 'success' && 'La communication avec l’application fonctionne.'}
-                {connection.status === 'error' && 'La connexion a échoué. Vous pouvez réessayer.'}
-              </p>
-            </div>
-          </div>
-
-          <button type="button" onClick={retry} disabled={connection.status === 'loading'}>
-            {connection.status === 'loading' ? 'Vérification…' : 'Vérifier à nouveau'}
-          </button>
-        </section>
-
-        <p className="data-note">
-          Aucune observation climatique n’est encore affichée.
-          La série retenue pour la suite est l’indice NOAA ONI, version ERSSTv6.
-        </p>
+        <OniExplorer />
       </main>
 
-      <footer>Projet individuel · Développement progressif et données sourcées</footer>
+      <footer>
+        Projet individuel HETIC WEB3 · Données NOAA CPC, ONI ERSSTv6 · Observations passées,
+        aucune prévision
+      </footer>
     </>
   )
 }
