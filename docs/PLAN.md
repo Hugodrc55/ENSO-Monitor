@@ -14,11 +14,11 @@ sera expliqué dans le journal, et chaque nouvelle étape attendra l'accord de l
 | 5 | Import authentique en base, provenance (source, import, date d'extraction), test d'import | Réalisé le 14 novembre avec assistance IA : 921 observations importées, second import sans ajout, 8 tests |
 | 6 | Exposer les observations avec FastAPI et documenter le contrat OpenAPI | Réalisé le 14 novembre avec assistance IA, regroupé avec la ligne 7 : `GET /api/v1/observations` |
 | 7 | Filtres temporels, validations et test API sur période + entrée invalide | Réalisé le 14 novembre avec assistance IA : bornes incluses, erreurs 422/404/503, 10 tests |
-| 8 | Construire l'interface de consultation et brancher les observations | Non commencé |
-| 9 | Ajouter courbe interactive, période sélectionnable, unité, légende et source | Non commencé |
-| 10 | Comparer deux épisodes réels et documenter résultats et limites | Non commencé |
-| 11 | Vérifier responsive, clavier, contrastes et états d'erreur | Non commencé |
-| 12 | Exécuter un test frontend de changement de période ; documenter la preuve | Non commencé |
+| 8 | Construire l'interface de consultation et brancher les observations | Réalisé le 15 novembre avec assistance IA : page branchée sur `GET /api/v1/observations` |
+| 9 | Ajouter courbe interactive, période sélectionnable, unité, légende et source | Réalisé le 15 novembre avec assistance IA : courbe SVG, filtre de période, tableau des valeurs |
+| 10 | Comparer deux épisodes réels et documenter résultats et limites | Réalisé le 15 novembre avec assistance IA : El Niño 1997-1998 et La Niña 1988-1989, valeurs calculées depuis l'API |
+| 11 | Vérifier responsive, clavier, contrastes et états d'erreur | En partie le 15 novembre : clavier, états d'erreur, largeur de 390 px et contrastes vérifiés ; restent un téléphone réel et un lecteur d'écran |
+| 12 | Exécuter un test frontend de changement de période ; documenter la preuve | Réalisé le 15 novembre avec assistance IA : 12 tests Vitest, dont le changement de période |
 | 13 | Préparer configuration locale et documentation Compose/Caddy/VPS, sauvegardes et restauration | Non commencé |
 | 14 | Vérifier l'intégration, corriger les anomalies, relancer les tests pertinents | Non commencé |
 
@@ -75,8 +75,15 @@ la préparation réelle sur environ un mois.
 - Sous Windows, une base arrêtée bloquait une requête plus de 60 s : délai de connexion de 5 s (D25).
 - Remise le 22 novembre : il reste l'interface, le test frontend, la comparaison et le dossier.
 
+## Risques identifiés lors de l'interface (15 novembre)
+
+- Deux épisodes éloignés n'ont pas la même période de référence : limites écrites dans l'interface (D29).
+- Le test frontend utilise une API simulée : l'intégration réelle n'est vérifiée que par la démonstration manuelle (D30).
+- `npm audit` signale 9 alertes modérées dans la chaîne ESLint (`minimatch`), à réexaminer.
+- Remise le 22 novembre : restent la documentation du déploiement et le dossier de conception.
+
 ## Étape suivante
 
-Interface de consultation et courbe (lignes 8 et 9 du tableau), branchées sur
-`GET /api/v1/observations`, puis le test frontend du changement de période. Bilan
-de l'import et de l'API : [NOTE_IMPORT_API.md](NOTE_IMPORT_API.md).
+Documentation du déploiement : Docker Compose, Caddy et VPS (ligne 13), puis
+intégration et corrections (ligne 14), et le dossier de conception. Bilan de
+l'import et de l'API : [NOTE_IMPORT_API.md](NOTE_IMPORT_API.md).

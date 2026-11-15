@@ -633,3 +633,118 @@ Six commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
 - L'import fait confiance au CSV : il vérifie le fichier brut que le CSV désigne,
   mais pas que le CSV en dérive.
 - Restent : l'interface, la courbe, le test frontend, la comparaison et le dossier.
+
+### Publication
+
+Après accord de l'étudiant, `git push` a publié les six commits
+(`284a0ac..12c1652 main -> main`). `git rev-parse HEAD` et
+`git ls-remote origin refs/heads/main` renvoyaient tous deux
+`12c165214adb97a8ed2fc47785e765bf6adc6023`.
+
+## 15 novembre 2026 — Interface : courbe filtrable, comparaison et test frontend
+
+### Périmètre
+
+Terminer l'interface du MVP : courbe ONI filtrable par période, comparaison de
+deux épisodes historiques, test frontend exigé par le sujet. API et base inchangées.
+
+### État de départ
+
+- `main` propre et synchronisée avec `origin/main` (`12c1652`) ; conteneur
+  PostgreSQL en marche, 921 observations en base.
+- Contrat de l'API vérifié par des requêtes réelles avant toute modification :
+  - paramètres `start` et `end` ;
+  - réponse : `series` (`code`, `name`, `version`, `unit`, `source`), `start`,
+    `end`, et `observations` (`reference_month`, `season`, `year`, `oni`) ;
+  - en cas de 422, `detail` est une phrase (début après la fin) ou une liste
+    Pydantic (date invalide).
+
+  Aucun blocage à corriger côté API.
+
+### Travail réalisé
+
+- **Outils de test** : Vitest, jsdom et Testing Library, script `test` (D30). jsdom
+  impose Node 22.22.2 au minimum : champ `engines` et prérequis du README mis à jour.
+- **Appels et état** : `api.ts` (`fetchObservations`, contrôle du JSON) et
+  `useObservations.ts` (annulation, délai de 10 s, nouvelle tentative) (D28).
+- **Composants** : `PeriodFilter`, `OniChart` (SVG, D27), `ObservationsTable`,
+  `OniExplorer` et `EpisodeComparison` (D29).
+- **Calculs et formatage** : `format.ts` et `stats.ts`.
+- **Page** : `App.tsx` et `styles.css`. La carte « État du service » est retirée
+  (D28).
+- **Tests** : `App.test.tsx` (5 cas de parcours) et `stats.test.ts` (7 cas).
+
+### Constats et corrections
+
+- **Espaces insécables** : l'outil d'édition de l'assistant a écrit le caractère
+  lui-même à la place de son échappement. ESLint l'a refusé
+  (`no-irregular-whitespace`). Correction : une constante `NBSP` dans `format.ts`.
+- **Clé React inutile** : une erreur volontaire (courbe non recréée au changement
+  de période) n'a fait échouer aucun test. La cause est que la courbe n'est pas
+  affichée pendant le chargement : elle est donc toujours recréée. La clé a été
+  retirée, avec un commentaire qui l'explique.
+- **Code mort** : `countWhere` n'était utilisée nulle part ; elle a été supprimée.
+- **`npm audit`** : 9 alertes modérées, toutes dues à `minimatch` via ESLint et
+  typescript-eslint. Les outils de test ajoutés n'y sont pour rien ; non traitées.
+- **Vérification mobile** : Chrome headless ne descend pas à 390 px de large, la
+  première capture était donc trompeuse. La mesure a été refaite dans un cadre
+  (iframe) de 390 px. L'extension Chrome ne parvenait pas non plus à faire de
+  capture d'écran : ses vérifications ont été faites par lecture du DOM.
+
+### Vérifications réelles
+
+| Vérification exécutée | Résultat observé |
+| --- | --- |
+| Requêtes réelles avant modification | 200 sur 2015-07-01 → 2016-03-01 (9 saisons) ; 422 sur début après la fin et sur 2015-02-30 |
+| `npm run typecheck`, `npm run lint` | Sans erreur |
+| `npm test` | **12 passed** (2 fichiers) en 3,4 s |
+| Erreur volontaire : le formulaire ne transmet plus la période | Test principal en échec ; fichier restauré à l'identique, 12 passed |
+| `npm run build` | Réussi ; JavaScript 237,93 kB (75,28 kB gzip), CSS 4,79 kB |
+| Commits de code compilés chacun dans un `git worktree` | Build et lint réussis à chaque commit ; 12 passed sur le commit des tests |
+| Chrome, API et PostgreSQL réels : ouverture | 921 saisons, DJF 1950 → ASO 2026 ; +2,59 °C (NDJ 2015) et −2,04 °C (NDJ 1973) |
+| Période 2015-07-01 → 2016-03-01 | 9 saisons, JJA 2015 → FMA 2016, mêmes valeurs que `curl` ; 9 lignes au tableau |
+| Courbe au clavier : Début puis 5 fois → | NDJ 2015 : +2,59 °C ; contour de focus de 3 px visible |
+| Dates inversées | Message, aucune requête, valeurs précédentes conservées |
+| 1940-01-01 → 1949-12-31 | Message « Aucune saison ONI… » ; pas de courbe, source affichée |
+| API arrêtée | « L'API est injoignable ou en erreur (code HTTP 502) » ; les valeurs reviennent après relance et « Réessayer » |
+| Base arrêtée | « Chargement des observations… », puis « L'API répond, mais la base de données est indisponible. » ; les valeurs reviennent après redémarrage |
+| Comparaison | 12 saisons chacune ; +0,71 à +2,37 °C ; −1,85 à −0,85 °C ; 12 saisons d'affilée au-delà du seuil pour chacune |
+| Cadre de 390 px | Aucun défilement horizontal ; courbe de 309 px ; graduations 1960 à 2020 |
+| Contrastes (formule WCAG) | Textes de 5,30:1 à 12,17:1 ; bordure des champs 4,06:1 ; seuils et focus de 5,37:1 à 6,13:1 |
+| Commandes `Invoke-RestMethod` du README, direct et par le proxy | NDJ 2015, 2.59, par les deux chemins |
+
+Non vérifiés : affichage sur un vrai téléphone et lecture avec un lecteur d'écran.
+
+### Git
+
+Cinq commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
+1. `chore: ajouter Vitest et Testing Library au frontend`
+2. `feat: afficher la courbe ONI filtrable par période`
+3. `feat: comparer un épisode El Niño et un épisode La Niña`
+4. `test: tester le changement de période dans l'interface`
+5. `docs: documenter l'interface et le test frontend`
+
+### Contributions de l'IA
+
+**Fourni par l'étudiant** : le cahier des charges de la session :
+- une courbe filtrable, avec dates, °C et source visibles ;
+- les valeurs consultables sans souris ;
+- un épisode El Niño et un épisode La Niña comparés à partir de l'API, sans bornes présentées comme officielles ;
+- les états à vérifier ;
+- un test qui vérifie l'affichage ;
+- les consignes Git.
+
+**Réalisé par Claude** :
+- le choix des épisodes et des fenêtres ;
+- le code, les tests et la documentation ;
+- l'exécution de la démonstration et des vérifications.
+
+La compréhension et la validation personnelles de l'étudiant restent à confirmer.
+
+### Limites ouvertes
+
+- La date d'extraction n'est pas affichée dans l'interface : l'API ne la renvoie pas.
+- Aucun test automatisé de bout en bout (navigateur, API et base) : l'intégration
+  repose sur la démonstration manuelle.
+- La période choisie n'est pas conservée dans l'URL.
+- Restent : la documentation du déploiement et le dossier de conception.

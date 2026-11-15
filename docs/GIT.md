@@ -16,6 +16,8 @@
   publiés ; SHA local et distant identiques, `17a60c1`.
 - **Push du 14 novembre 2026** : les quatre commits du schéma PostgreSQL ont été
   publiés ; SHA local et distant identiques, `284a0ac`.
+- **Push du 14 novembre 2026 (soir)** : les six commits de l'import et de l'API
+  ont été publiés (`284a0ac..12c1652`) ; SHA local et distant identiques, `12c1652`.
 - Chaque publication suit un accord explicite de l'étudiant.
 
 ## Commits du Jour 1
@@ -87,6 +89,20 @@ Import et API, le même jour en fin de journée :
 | Fixtures communes | `backend/tests/conftest.py`, `backend/tests/test_schema.py` | `refactor: partager la base de test entre les fichiers de tests` |
 | Tests | `backend/tests/test_import_oni.py`, `backend/tests/test_observations_api.py` | `test: tester l'import et la route des observations` |
 | Documentation | `README.md`, `etl/README.md`, `docs/` | `docs: documenter l'import et l'API des observations` |
+
+## Commits du 15 novembre 2026
+
+| Ensemble cohérent | Fichiers | Message |
+| --- | --- | --- |
+| Outils de test du frontend | `frontend/package.json`, `frontend/package-lock.json`, `frontend/vite.config.ts` | `chore: ajouter Vitest et Testing Library au frontend` |
+| Courbe filtrable | `frontend/src/api.ts`, `useObservations.ts`, `format.ts`, `stats.ts`, `components/` (sauf la comparaison), `App.tsx`, `styles.css` | `feat: afficher la courbe ONI filtrable par période` |
+| Comparaison d'épisodes | `frontend/src/components/EpisodeComparison.tsx`, `App.tsx`, `format.ts`, `stats.ts` | `feat: comparer un épisode El Niño et un épisode La Niña` |
+| Tests | `frontend/src/App.test.tsx`, `frontend/src/stats.test.ts` | `test: tester le changement de période dans l'interface` |
+| Documentation | `README.md`, `docs/` | `docs: documenter l'interface et le test frontend` |
+
+Chaque commit de code a été compilé et vérifié par le lint dans une copie de
+travail isolée (`git worktree`), à son propre état ; les tests ont été exécutés
+sur le commit des tests.
 
 Revue des commits non publiés :
 

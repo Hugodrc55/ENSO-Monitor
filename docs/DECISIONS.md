@@ -303,3 +303,88 @@ restent à confirmer. Aucune validation orale n'est supposée.
 - **Avantage** : même moteur qu'en production (contraintes `CHECK`, `NUMERIC`, `make_date`) et tests rapides : 34 en 3,5 s.
 - **Limite** : Docker et la base `enso_monitor_test` sont nécessaires. Les données des tests sont fictives ; les valeurs NOAA réelles ne sont vérifiées que par la démonstration.
 - **Vérification** : les 16 tests existants passent après le regroupement des fixtures, et la série complète passe sans avertissement (`-W error`).
+
+## D27 — Courbe dessinée en SVG, sans bibliothèque de graphiques
+
+- **Besoin** : une courbe de 921 saisons au plus. Elle doit avoir des dates à l'horizontale, des °C à la verticale et les seuils ±0,5 °C. Elle doit rester lisible sur mobile, consultable au clavier et testable sans navigateur.
+- **Options** : Recharts (composants React en SVG) ; Chart.js (dessin en canvas, invisible pour les lecteurs d'écran et pour les tests DOM) ; D3 (échelles et axes) ; SVG écrit dans un composant React.
+- **Choix** : `frontend/src/components/OniChart.tsx`.
+  - Échelles linéaires : rang du mois central à l'horizontale, °C à la verticale, toujours au moins de −1 à +1 °C pour garder 0 et les seuils visibles.
+  - Graduations adaptées à la largeur réelle, mesurée avec `ResizeObserver`.
+  - Surfaces au-dessus et au-dessous de 0, avec un point de passage interpolé quand la courbe change de signe.
+  - La saison sélectionnée suit le modèle ARIA du curseur (`role="slider"`, `aria-valuetext`) : flèches, Pg↑ et Pg↓ (un an), Début et Fin. À la souris ou au doigt, la saison la plus proche est retenue.
+  - Un tableau des valeurs (`<details>`) donne la même information sans graphique.
+- **Avantage** : aucune dépendance de production ajoutée ; chaque calcul peut être expliqué ; le SVG fait partie du DOM, donc les tests le lisent.
+- **Limite** : pas de zoom ni de déplacement dans la courbe ; plus de code à maintenir qu'avec une bibliothèque ; graduations simples, avec un pas choisi parmi 1, 3, 6, 12, 24, 60, 120 ou 240 mois.
+- **Vérification** :
+  - test Vitest du curseur au clavier ;
+  - dans Chrome sur les données réelles, Début puis 5 fois → mènent à NDJ 2015 (+2,59 °C) ;
+  - à 390 px de large, aucun défilement horizontal.
+
+## D28 — Chargement par période et états de l'interface
+
+- **Besoin** : recharger les observations à chaque période, ne jamais afficher la réponse d'une ancienne période, et rendre visibles le chargement, la période vide, les dates inversées et les erreurs.
+- **Options** :
+  - requête à chaque modification d'un champ, ou à la validation du formulaire ;
+  - contrôle des dates dans le navigateur, dans l'API, ou les deux ;
+  - bibliothèque de requêtes (TanStack Query) ou hook écrit pour le projet.
+- **Choix** :
+  - formulaire validé par « Afficher » ; une date vide ou une période inversée est refusée avant toute requête, avec un message en français (`role="alert"`). L'API garde sa propre validation (422) ;
+  - hook `useObservations` : une clé par requête (période et numéro de tentative). La requête précédente est annulée au changement de période ou au démontage. Délai de 10 s, plus long que les 5 s après lesquelles l'API répond 503 ;
+  - le JSON reçu est contrôlé dans `api.ts` avant usage ;
+  - la carte « État du service » est retirée de la page. Le message d'erreur distingue déjà une API injoignable (502 du proxy, ou aucune réponse) d'une base indisponible (503). La route `/api/v1/health` reste dans l'API.
+- **Avantage** : aucune dépendance ajoutée ; même principe que le premier appel de santé (annulation, délai, réponse ignorée après démontage). L'état « chargement » est déduit de la clé, sans écriture d'état dans l'effet, comme le demande la règle `react-hooks/set-state-in-effect`.
+- **Limite** : pas de cache, donc revenir à une période déjà affichée relance la requête ; la période n'est pas dans l'URL et ne peut pas être partagée par un lien.
+- **Vérification** :
+  - tests : dates inversées sans requête, période vide, erreur réseau puis « Réessayer » ;
+  - dans Chrome : 502 avec l'API arrêtée, 503 avec la base arrêtée, puis retour des valeurs après redémarrage.
+
+## D29 — Épisodes comparés : El Niño 1997-1998 et La Niña 1988-1989
+
+- **Besoin** : comparer un épisode chaud et un épisode froid réellement couverts par la série, avec des valeurs calculées depuis l'API, et interpréter prudemment le résultat.
+- **Repérage** : le 15 novembre, un script temporaire, hors du dépôt, a appliqué la règle NOAA (au moins 5 saisons consécutives au-delà de ±0,5 °C) aux 921 observations de l'API. Suites relevées, entre autres :
+  - El Niño : AMJ 1997 → MAM 1998, 12 saisons, pic NDJ 1997 (+2,37 °C) ; SON 2014 → AMJ 2016, 20 saisons, pic NDJ 2015 (+2,59 °C) ;
+  - La Niña : AMJ 1988 → AMJ 1989, 13 saisons, pic NDJ 1988 (−1,85 °C) ; AMJ 1973 → MJJ 1974, 14 saisons, pic NDJ 1973 (−2,04 °C).
+- **Options** : les deux extrêmes de la série (2015-2016 et 1973-1974) ; deux épisodes marqués et proches dans le temps. Pour les bornes : celles des suites détectées, ou des fenêtres de même durée.
+- **Choix** : deux fenêtres de 12 saisons, de mai à avril (mois centraux), AMJ 1997 → MAM 1998 et AMJ 1988 → MAM 1989. Les deux pics tombent en fin d'année, au milieu de la fenêtre. Ces fenêtres sont un choix du projet, pas des dates officielles de début et de fin, et l'interface le dit.
+- **Écartés** : 2015-2016 dure 20 saisons et ne tient pas dans une fenêtre de même durée ; 1973-1974 est à 24 ans de 1997, et ses références seraient encore plus éloignées.
+- **Avantage** : même durée pour les deux épisodes ; chaque fenêtre reste entière au-delà du seuil ; neuf ans seulement d'écart.
+- **Limite** :
+  - les périodes de référence de 30 ans changent tous les 5 ans : à neuf ans d'écart, les deux anomalies n'ont pas la même référence ;
+  - les saisons se chevauchent et ne sont pas indépendantes ;
+  - un seul indice, une seule région ; deux épisodes ne permettent aucune généralisation.
+
+  Ces limites sont écrites dans l'interface. Les phrases d'observation sont construites à partir des valeurs calculées, sans chiffre écrit en dur.
+- **Vérification** :
+  - dans Chrome, 12 saisons par fenêtre ;
+  - El Niño : de +0,71 °C (AMJ 1997) à +2,37 °C (NDJ 1997) ;
+  - La Niña : de −1,85 °C (NDJ 1988) à −0,85 °C (MAM 1989) ;
+  - 12 saisons d'affilée au-delà du seuil pour chacun ;
+  - un test Vitest vérifie que les valeurs affichées sont bien calculées à partir de la réponse de l'API.
+
+## D30 — Test frontend avec Vitest, jsdom et Testing Library
+
+- **Besoin** : le test exigé par le sujet, « un changement de période actualise la courbe ou les valeurs affichées », vérifié sur l'affichage et pas seulement sur l'envoi d'une requête.
+- **Options** : Playwright (vrai navigateur, contre l'API et la base) ; Vitest avec un DOM simulé et une API simulée.
+- **Choix** : outils de développement à versions fixées :
+
+  | Outil | Version | Rôle |
+  | --- | --- | --- |
+  | Vitest | 5.1.0 | Lanceur de tests, réutilise la configuration Vite |
+  | jsdom | 31.0.1 | DOM simulé, sans navigateur |
+  | @testing-library/react | 16.3.3 | Rendu des composants |
+  | @testing-library/dom | 10.4.2 | Recherche par rôle et par libellé, comme un utilisateur |
+  | @testing-library/user-event | 14.6.10 | Saisie, clics et clavier |
+
+  `fetch` est remplacé par une fausse API qui filtre 15 valeurs **fictives** selon `start` et `end`, bornes incluses, comme l'API réelle. jsdom impose Node 22.22.2 au minimum (champ `engines`).
+- **Avantage** : 12 tests en 3 à 4 s, sans Docker ni base. Le test principal vérifie, après le changement de période :
+  - le résumé : nombre de saisons, première et dernière, extrêmes ;
+  - la valeur lue sur la courbe, y compris au clavier ;
+  - les lignes du tableau.
+- **Limite** :
+  - ne prouve pas l'intégration avec l'API réelle, vérifiée par la démonstration manuelle ;
+  - jsdom ne calcule pas la mise en page, donc le responsive est vérifié à part ;
+  - `npm audit` signale 9 alertes modérées dans la chaîne ESLint (`minimatch`), sans lien avec ces outils, non traitées.
+- **Vérification** :
+  - `npm.cmd --prefix frontend test` : 12 passed ;
+  - erreur volontaire (le formulaire ne transmet plus la période) : le test principal échoue ; fichier restauré à l'identique.
