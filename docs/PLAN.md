@@ -19,8 +19,8 @@ sera expliqué dans le journal, et chaque nouvelle étape attendra l'accord de l
 | 10 | Comparer deux épisodes réels et documenter résultats et limites | Réalisé le 15 novembre avec assistance IA : El Niño 1997-1998 et La Niña 1988-1989, valeurs calculées depuis l'API |
 | 11 | Vérifier responsive, clavier, contrastes et états d'erreur | En partie le 15 novembre : clavier, états d'erreur, largeur de 390 px et contrastes vérifiés ; restent un téléphone réel et un lecteur d'écran |
 | 12 | Exécuter un test frontend de changement de période ; documenter la preuve | Réalisé le 15 novembre avec assistance IA : 12 tests Vitest, dont le changement de période |
-| 13 | Préparer configuration locale et documentation Compose/Caddy/VPS, sauvegardes et restauration | Non commencé |
-| 14 | Vérifier l'intégration, corriger les anomalies, relancer les tests pertinents | Non commencé |
+| 13 | Préparer configuration locale et documentation Compose/Caddy/VPS, sauvegardes et restauration | En partie le 16 novembre : déploiement proposé dans le dossier (§ 7), sauvegarde et restauration testées en local ; fichiers de production non créés |
+| 14 | Vérifier l'intégration, corriger les anomalies, relancer les tests pertinents | Réalisé le 16 novembre avec assistance IA : chaîne complète rejouée sur une base vide, trois tests relancés |
 
 La suite du mois est réservée aux corrections, au dossier (15 pages maximum,
 couverture comprise), aux diagrammes UML commentés et à la préparation de l'oral.
@@ -82,8 +82,17 @@ la préparation réelle sur environ un mois.
 - `npm audit` signale 9 alertes modérées dans la chaîne ESLint (`minimatch`), à réexaminer.
 - Remise le 22 novembre : restent la documentation du déploiement et le dossier de conception.
 
+## Dossier de conception (16 novembre)
+
+Rédigé dans [`dossier/dossier.html`](dossier/README.md) : 15 pages, huit sections du
+sujet, diagrammes alignés sur le code. Avant le rendu du 22 novembre :
+
+- compléter les quatre passages marqués « À compléter » (nom, arbitrages
+  personnels, vérifications personnelles, retour d'expérience) ;
+- réexporter, vérifier le nombre de pages et le sommaire, relire le PDF ;
+- répéter l'oral sur les fichiers clés (import, route, test, courbe).
+
 ## Étape suivante
 
-Documentation du déploiement : Docker Compose, Caddy et VPS (ligne 13), puis
-intégration et corrections (ligne 14), et le dossier de conception. Bilan de
-l'import et de l'API : [NOTE_IMPORT_API.md](NOTE_IMPORT_API.md).
+Compléter et relire le dossier, puis préparer l'oral. Bilan de l'import et de
+l'API : [NOTE_IMPORT_API.md](NOTE_IMPORT_API.md).

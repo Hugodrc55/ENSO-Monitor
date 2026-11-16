@@ -388,3 +388,19 @@ restent à confirmer. Aucune validation orale n'est supposée.
 - **Vérification** :
   - `npm.cmd --prefix frontend test` : 12 passed ;
   - erreur volontaire (le formulaire ne transmet plus la période) : le test principal échoue ; fichier restauré à l'identique.
+
+## D31 — Dossier de conception en HTML, exporté en PDF par Chrome
+
+- **Besoin** : un PDF paginé, avec sommaire et diagrammes lisibles, de 15 pages au plus, que l'étudiant puisse encore modifier, sans installer de nouvel outil.
+- **Options** : traitement de texte (Word, LibreOffice) ; Markdown converti par Pandoc ou LaTeX (non installés) ; diagrammes Mermaid ou PlantUML (rendu à installer) ; HTML et CSS d'impression, exportés par un navigateur déjà présent.
+- **Choix** :
+  - `docs/dossier/dossier.html`, avec les diagrammes UML et d'architecture écrits en SVG dans le même fichier ;
+  - `@page` pour le format A4 et les numéros de page ;
+  - `docs/dossier/exporter.ps1` : export avec Chrome ou Edge sans interface, comptage des pages, refus au-delà de 15, comptage des passages « À compléter » ;
+  - le PDF est exclu de Git, puisqu'il se régénère.
+- **Avantage** : aucune dépendance ajoutée ; la source est relisible dans Git ; chaque schéma peut être corrigé en même temps que le code qu'il décrit.
+- **Limite** :
+  - les numéros du sommaire sont écrits à la main, avec une section par page prévue : si une section s'allonge, il faut réexporter et corriger le sommaire ;
+  - l'export dépend d'un navigateur Chromium récent ;
+  - éditer du SVG à la main est plus long qu'avec un outil de diagrammes.
+- **Vérification** : le 16 novembre, 15 pages comptées par le script et par le moteur PDF de Windows ; chaque page a été affichée pour contrôler la lisibilité des schémas et le début des sections.

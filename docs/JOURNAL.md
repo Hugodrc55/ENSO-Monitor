@@ -748,3 +748,101 @@ La compréhension et la validation personnelles de l'étudiant restent à confir
   repose sur la démonstration manuelle.
 - La période choisie n'est pas conservée dans l'URL.
 - Restent : la documentation du déploiement et le dossier de conception.
+
+### Publication
+
+Après accord de l'étudiant, `git push` a publié les cinq commits
+(`12c1652..60a1941 main -> main`). `git rev-parse HEAD` et
+`git ls-remote origin refs/heads/main` renvoyaient tous deux
+`60a1941ef835fd6e37c3ec983283e08c217cf49b`.
+
+## 16 novembre 2026 — Revérification du MVP et dossier de conception
+
+### Périmètre
+
+Vérifier les quatre fonctionnalités du MVP sur les vraies données, relancer les
+trois tests exigés, puis rédiger le dossier de conception de 15 pages au plus.
+Aucune mise en ligne.
+
+### État de départ
+
+`main` propre et synchronisée avec `origin/main` (`60a1941`) ; conteneur
+PostgreSQL en marche ; sujet officiel relu (8 pages).
+
+### Vérifications réelles du MVP
+
+| Vérification exécutée | Résultat observé |
+| --- | --- |
+| `pytest etl/tests -q` | **28 passed** en 4,2 s |
+| `pytest -q -W error` depuis `backend` | **34 passed** en 4,8 s |
+| `pytest tests/test_observations_api.py -v` depuis `backend` | **10 passed** en 3,2 s (période, bornes, période vide, 4 dates invalides, début après la fin, OpenAPI, 404, 503) |
+| `npm.cmd --prefix frontend test` | **12 passed** en 5,8 s |
+| `npm run lint`, `npm run build` | Sans erreur ; JavaScript 237,93 kB (75,28 kB gzip) |
+| Base jetable `enso_monitor_verif` : migration, transformation, deux imports | `86057118b37f (head)` ; 921 lignes valides, CSV identique (`4b1f7a77…`) ; import 1 : 921 ajoutées ; import 2 : 0 ajoutée, 921 identiques, 1 seul import ; base supprimée ensuite |
+| API réelle sur la base de développement | 200 sur 2015-07-01 → 2016-03-01 (9 saisons, NDJ 2015 = 2.59) ; 422 sur début après la fin et sur 2015-02-30 ; 921 saisons sur toute la série |
+| Chrome, période 1997-05-01 → 1998-04-01 | 12 saisons, AMJ 1997 → MAM 1998, de +0,71 à +2,37 °C ; mêmes valeurs que la comparaison |
+| `pg_dump -Fc` puis `pg_restore` dans une base jetable | Fichier de 43 812 octets ; 921 observations, 1 import, NDJ 2015 = 2.59, migration `86057118b37f` ; base et fichier supprimés ensuite |
+| `npm audit --omit=dev` | 0 vulnérabilité |
+
+Aucun blocage du MVP. Étape manquante relevée dans le README : le lancement local
+ne rappelait pas qu'il faut démarrer, migrer et remplir la base avant d'ouvrir
+l'interface. Elle a été ajoutée.
+
+### Dossier de conception
+
+- `docs/dossier/dossier.html` : couverture, sommaire et les huit sections du sujet ;
+  sept figures, dont cinq diagrammes en SVG (cas d'utilisation, domaine, séquence,
+  architecture, déploiement), des maquettes et une capture réelle (D31).
+- `docs/dossier/captures/` : deux extraits d'une capture de l'interface prise le
+  16 novembre avec Chrome sans interface, sur les données réelles.
+- `docs/dossier/exporter.ps1` : export PDF, comptage des pages et des passages
+  à compléter. `.editorconfig` : scripts PowerShell en UTF-8 avec BOM, pour que
+  Windows PowerShell 5.1 lise les accents. `.gitignore` : PDF du dossier exclu.
+
+### Constats et corrections
+
+- **Premier export à 16 pages** : la section 7 débordait, car le bloc des
+  extraits de configuration ne peut pas être coupé. Les sous-sections ont été
+  réordonnées, l'extrait Compose raccourci et un saut de page forcé supprimé :
+  15 pages.
+- **Lecture des pages du PDF** : l'outil de lecture de l'assistant exigeait
+  poppler, absent. Les pages ont été rendues en images par le moteur PDF de
+  Windows (`Windows.Data.Pdf`), avec un script temporaire hors du dépôt. Ce moteur
+  a aussi compté les pages : le même nombre que le script d'export.
+- **Schémas relus page par page** : étiquettes collées aux flèches, libellé du
+  réseau interne coupé et note débordant sur une ligne de vie, corrigés. La boîte
+  ETL du schéma de déploiement suggérait un accès à la base, contrairement à
+  l'extrait Compose (ETL sans réseau) : elle a été corrigée.
+- **Chemin avec espace** : la première capture a échoué (« Multiple targets »),
+  car le chemin du dépôt contient une espace ; les arguments sont maintenant
+  entre guillemets, y compris dans `exporter.ps1`.
+
+### Git
+
+Trois commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
+1. `chore: exporter le dossier de conception en PDF`
+2. `docs: ajouter le dossier de conception`
+3. `docs: consigner la revérification du MVP et le dossier`
+
+### Contributions de l'IA
+
+**Fourni par l'étudiant** : le cahier des charges :
+- la vérification du MVP sur les vraies données ;
+- les huit sections et leur contenu attendu ;
+- la limite de 15 pages ;
+- la séparation entre ce qui est testé et ce qui est proposé ;
+- le marquage des passages personnels.
+
+**Réalisé par Claude** :
+- les vérifications et la démonstration ;
+- la rédaction du dossier, les diagrammes, les captures et le script d'export.
+
+La compréhension et la validation personnelles de l'étudiant restent à confirmer.
+
+### Limites ouvertes
+
+- Quatre passages du dossier restent à compléter par l'étudiant : nom, arbitrages
+  personnels, vérifications personnelles, retour d'expérience.
+- Le déploiement est proposé, non testé : Dockerfiles, `compose.prod.yaml` et
+  Caddyfile n'existent qu'à l'état d'extraits dans le dossier.
+- Le sommaire est numéroté à la main : à revérifier après toute modification.

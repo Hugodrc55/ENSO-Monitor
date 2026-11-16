@@ -6,7 +6,12 @@ validation personnelle à chaque étape. Début : **4 novembre 2026**.
 Dépôt GitHub : [Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor),
 publié depuis le **10 novembre 2026**. Voir [le suivi Git](docs/GIT.md).
 
-## État au 15 novembre 2026
+## État au 16 novembre 2026
+
+**Dossier de conception** (livrable B, 15 pages) : source
+[`docs/dossier/dossier.html`](docs/dossier/README.md), export PDF par
+`docs/dossier/exporter.ps1`. Quatre passages restent à compléter par l'étudiant
+avant le rendu.
 
 - **Premier écran (4 novembre)** : une page React/TypeScript appelait
   `GET /api/v1/health` pour vérifier que l'API répondait. Elle a été remplacée le
@@ -72,7 +77,13 @@ le sujet ne sont pas des dépendances de l'application.
 
 ## Lancement local
 
-Ouvrir deux terminaux à la racine du dépôt.
+L'interface affiche les observations de la base : au premier lancement,
+démarrer PostgreSQL, appliquer la migration puis importer les données (étapes 1
+à 3 de la [démonstration](#démonstration--du-fichier-noaa-à-lapi)). Sinon, la
+page affiche l'erreur renvoyée par l'API : 503 si la base est arrêtée, 404 si
+aucune observation n'a été importée.
+
+Ouvrir ensuite deux terminaux à la racine du dépôt.
 
 **Terminal 1 — API :**
 
@@ -301,6 +312,19 @@ seulement le test du changement de période :
 npm.cmd --prefix frontend test -- -t "quand la période change"
 ```
 
+Pour relancer seulement le test de la route filtrée (période valide et entrées
+invalides) :
+
+```powershell
+Push-Location backend
+.\.venv\Scripts\python.exe -m pytest tests/test_observations_api.py -v
+Pop-Location
+```
+
+Dernière exécution complète, le 16 novembre 2026 : transformation **28 passed**,
+backend **34 passed** (dont la route filtrée, 10 passed), frontend **12 passed** ;
+lint et build sans erreur.
+
 `build` lance d'abord la vérification TypeScript stricte, puis Vite produit `frontend/dist/`.
 Pour consulter ce résultat localement, avec l'API toujours lancée :
 
@@ -380,6 +404,7 @@ docs/
   DECISIONS.md             Choix, alternatives, limites et vérifications
   JOURNAL.md               Travail réel, vérifications et apports de l'IA
   GIT.md                   État du dépôt, revue des commits et publication GitHub
+  dossier/                 Dossier de conception (source HTML, captures, export PDF)
   sujet/                   Copie locale du PDF officiel, exclue de Git
 AGENTS.md                  Consignes pour les prochaines sessions assistées
 ```
@@ -414,6 +439,8 @@ l'import, la route des observations, leurs tests et cette démonstration.
 Le 15 novembre, Claude a écrit l'interface (courbe, filtre, tableau, comparaison),
 choisi les deux épisodes et leurs fenêtres, écrit les tests Vitest et exécuté la
 démonstration, à partir du cahier des charges de l'étudiant.
+Le 16 novembre, Claude a revérifié le MVP sur les données réelles et rédigé le
+dossier de conception, ses diagrammes et son script d'export.
 Ces contributions sont détaillées dans le journal. La compréhension personnelle
 et la validation par l'étudiant restent à confirmer ; elles ne sont pas déduites
 du code généré ou des tests réussis.
@@ -434,5 +461,5 @@ recalculer l'empreinte avec `Get-FileHash` et la comparer à `SHA256SUMS`.
 - Sujet officiel local, huit pages : voir [sa synthèse](docs/EXIGENCES.md).
 - Sources NOAA consultées le 9 novembre 2026 : voir [la liste](docs/DONNEES_NOAA.md#sources-consultées-le-9-novembre-2026).
 
-Étape suivante prévue : documentation du déploiement (Docker Compose, Caddy, VPS)
-et dossier de conception (voir [PLAN.md](docs/PLAN.md)).
+Étape suivante prévue : compléter les passages personnels du dossier, relire le
+PDF, puis préparer l'oral (voir [PLAN.md](docs/PLAN.md)).
