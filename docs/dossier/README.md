@@ -6,7 +6,7 @@ couverture comprise, avec sommaire et pagination.
 | Fichier | Rôle |
 | --- | --- |
 | `dossier.html` | Source du dossier : texte, mise en page A4 et diagrammes en SVG |
-| `captures/` | Captures réelles de l'interface, prises le 16 novembre 2026 sur les données NOAA |
+| `captures/` | Captures réelles de l'interface, prises le 16 novembre 2026 sur les données NOAA : la courbe (figure 2 du dossier) et la comparaison (gardée comme preuve, non insérée faute de place dans les 15 pages) |
 | `exporter.ps1` | Export PDF et contrôles : nombre de pages, passages à compléter |
 
 ## Exporter le PDF
