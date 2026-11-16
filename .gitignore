@@ -11,6 +11,9 @@
 /docs/sujet/*
 !/docs/sujet/README.md
 
+# Dossier de conception : PDF régénéré par docs/dossier/exporter.ps1
+/docs/dossier/*.pdf
+
 # JavaScript / TypeScript
 node_modules/
 dist/
