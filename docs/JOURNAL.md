@@ -819,10 +819,12 @@ l'interface. Elle a été ajoutée.
 
 ### Git
 
-Trois commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
+Quatre commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
 1. `chore: exporter le dossier de conception en PDF`
 2. `docs: ajouter le dossier de conception`
 3. `docs: consigner la revérification du MVP et le dossier`
+4. `docs: préciser l'usage des captures du dossier`, ajouté après coup : la
+   capture de la comparaison était versionnée sans être insérée dans le dossier.
 
 ### Contributions de l'IA
 
@@ -846,3 +848,109 @@ La compréhension et la validation personnelles de l'étudiant restent à confir
 - Le déploiement est proposé, non testé : Dockerfiles, `compose.prod.yaml` et
   Caddyfile n'existent qu'à l'état d'extraits dans le dossier.
 - Le sommaire est numéroté à la main : à revérifier après toute modification.
+
+### Publication
+
+Après accord de l'étudiant, `git push` a publié les quatre commits
+(`60a1941..d7aa6b6 main -> main`). `git rev-parse HEAD` et
+`git ls-remote origin refs/heads/main` renvoyaient tous deux
+`d7aa6b69ebb626d0da9d2388a4d0dd10039cc693`.
+
+## 17 novembre 2026 — Rejeu complet depuis un clone propre et version à rendre
+
+### Périmètre
+
+Rejouer le projet comme un correcteur à partir d'une copie propre, sans
+utiliser l'espace de travail de l'étudiant ; relancer les trois tests et le
+build ; finaliser et contrôler le PDF du dossier ; vérifier qu'aucun secret ni
+PDF du sujet n'est exposé. Aucune fonctionnalité ajoutée.
+
+### État de départ
+
+`main` propre et identique à `origin/main` (`d7aa6b6`). Les quatre passages
+« À compléter » du dossier n'étaient pas encore remplis.
+
+### Rejeu depuis un clone propre
+
+Clone de `https://github.com/Hugodrc55/ENSO-Monitor.git` dans un dossier
+temporaire, hors de l'espace de travail. Le clone contient 70 fichiers suivis,
+dont le fichier NOAA brut, son empreinte et sa fiche de provenance ; il ne
+contient ni `.env`, ni PDF, ni `data/processed/`.
+
+| Étape du README | Résultat observé |
+| --- | --- |
+| Empreinte du fichier brut | Identique à `SHA256SUMS` (`118c5633…0f7f`) |
+| Python 3.13.17, Node 22.23.4, npm 10.9.9, Docker 29.9.2, Compose v5.6.1 | Conformes aux prérequis |
+| `pip install` des deux environnements, `npm ci` | Codes de sortie 0 |
+| `.env` copié de `.env.example`, mot de passe remplacé | Seul ajustement : `POSTGRES_PORT=5433` |
+| `docker compose up -d --wait db` | Conteneur sain, écoute sur `127.0.0.1:5433` |
+| `alembic upgrade head`, `current`, `check` | `86057118b37f (head)` ; aucun écart |
+| Transformation | 921 observations valides ; CSV identique (`4b1f7a77…`) |
+| Import, 1er puis 2e passage | 921 ajoutées, puis 0 ajoutée et 921 identiques ; 1 import en base |
+| `createdb enso_monitor_test` puis `pytest etl/tests -q` | **28 passed** (1,1 s) |
+| `pytest tests/test_observations_api.py -q` depuis `backend` | **10 passed** (3,1 s) |
+| `pytest -q -W error -rs` depuis `backend` | **34 passed** (3,4 s), aucun test ignoré |
+| `npm.cmd --prefix frontend test` | **12 passed** (4,4 s) |
+| `npm run lint`, `npm run build` | Sans erreur ; JavaScript 237,93 kB (75,28 kB gzip) |
+| `npm audit --omit=dev` | 0 vulnérabilité |
+| API et Vite lancés depuis le clone, Chrome | Toute la série : 921 saisons ; axe « Anomalie ONI (°C) », seuils en °C, source NOAA CPC avec série et version |
+| Période 2015-07-01 → 2016-03-01 | La courbe passe de 921 à 9 points, graduations mensuelles ; résumé, valeur lue et tableau (9 lignes) mis à jour |
+| Comparaison | 12 saisons par épisode ; +2,37 °C (NDJ 1997) et −1,85 °C (NDJ 1988) ; texte construit à partir de ces valeurs |
+| `exporter.ps1` exécuté dans le clone | PDF de 15 pages |
+
+Écart avec le README : la base de l'étudiant tournait en même temps, sur le port
+5432 et sous le même nom de projet Compose. Le clone a donc utilisé
+`docker compose -p enso-verif` et le port 5433. Ce cas ne se pose pas sur une
+machine sans projet existant ; le README précise maintenant comment changer de
+port. Le conteneur et le volume de vérification ont été supprimés après coup.
+
+### Sécurité du dépôt
+
+- Aucun `.env` ni aucun PDF n'a jamais été ajouté dans l'historique (70 fichiers
+  ajoutés au total ; `docs/sujet/` ne contient que son README).
+- Le mot de passe du `.env` local, lu sans être affiché, n'apparaît dans aucune
+  version d'aucun fichier.
+- Aucun motif de clé ou de secret dans les fichiers suivis.
+
+### Dossier
+
+- Dates mises à jour pour les vérifications refaites le 17 novembre ; les preuves
+  datées du 16 (capture, sauvegarde) gardent leur date.
+- Un premier export est remonté à 16 pages : une cellule rallongée de la section 7
+  repoussait le bloc de la procédure. Après raccourcissement de la cellule :
+  **15 pages**, comptées par le script et par le moteur PDF de Windows.
+- Les 15 pages ont été affichées : aucun tableau ni schéma coupé, chaque section
+  commence à la page du sommaire.
+
+### README
+
+- Les données NOAA nécessaires sont versionnées : aucun téléchargement à faire.
+  Renvoi vers la procédure d'une nouvelle extraction.
+- Changement du port PostgreSQL si 5432 est occupé.
+
+### Git
+
+Trois commits à la date réelle de la session (détail dans [GIT.md](GIT.md)) :
+1. `docs: dater le dossier du rejeu sur un clone propre`
+2. `docs: préciser les données versionnées et le port PostgreSQL`
+3. `docs: consigner le rejeu et la version à rendre`
+
+### Contributions de l'IA
+
+**Fourni par l'étudiant** : le cahier des charges de la session :
+- le rejeu depuis une copie propre ;
+- les trois tests et le build ;
+- le contrôle du PDF ;
+- la sécurité du dépôt ;
+- l'interdiction d'ajouter une fonctionnalité.
+
+**Réalisé par Claude** : le rejeu, les vérifications, les mises à jour du dossier,
+du README et de ce journal.
+
+La compréhension et la validation personnelles de l'étudiant restent à confirmer.
+
+### Reste avant le rendu
+
+Les quatre passages « À compléter » du dossier, que seul l'étudiant peut écrire :
+nom, arbitrages personnels, vérifications personnelles, retour d'expérience.
+Ensuite : réexporter, contrôler le nombre de pages et remettre le PDF.

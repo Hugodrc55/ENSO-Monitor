@@ -92,6 +92,9 @@ sujet, diagrammes alignés sur le code. Avant le rendu du 22 novembre :
 - réexporter, vérifier le nombre de pages et le sommaire, relire le PDF ;
 - répéter l'oral sur les fichiers clés (import, route, test, courbe).
 
+Le 17 novembre, le projet a été rejoué depuis un clone propre : installation,
+import, trois tests, build, API et interface fonctionnent ; PDF de 15 pages.
+
 ## Étape suivante
 
 Compléter et relire le dossier, puis préparer l'oral. Bilan de l'import et de
