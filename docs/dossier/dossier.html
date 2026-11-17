@@ -145,7 +145,7 @@
       <dt>Étudiant</dt><dd><span class="todo">À compléter : nom et prénom</span></dd>
       <dt>Livrable</dt><dd>Livrable B — dossier de conception, indépendant du README (15 pages maximum, couverture comprise)</dd>
       <dt>Code source</dt><dd>Dépôt GitHub <code>Hugodrc55/ENSO-Monitor</code>, branche <code>main</code></dd>
-      <dt>État décrit</dt><dd>Dépôt au 16 novembre 2026 · remise le 22 novembre 2026</dd>
+      <dt>État décrit</dt><dd>Dépôt au 17 novembre 2026 · remise le 22 novembre 2026</dd>
       <dt>Données</dt><dd>NOAA CPC, fichier <code>oni.ascii.txt</code> extrait le 9 novembre 2026 (921 saisons, DJF 1950 → ASO 2026)</dd>
     </dl>
   </div>
@@ -200,10 +200,10 @@
   <table>
     <thead><tr><th style="width:28%">Fonctionnalité</th><th>Réalisation</th><th style="width:22%">État</th></tr></thead>
     <tbody>
-      <tr><td>Importer une série NOAA dans PostgreSQL, identifier la source, contrôler les doublons</td><td><code>etl/transform_oni.py</code> puis <code>backend/app/import_oni.py</code> ; provenance par import ; doublons contrôlés à trois niveaux</td><td><span class="tag ok">Vérifié le 16 nov.</span> 921 saisons, second import : 0 ajout</td></tr>
-      <tr><td>Exposer les observations par une API documentée, filtrée et validée</td><td><code>GET /api/v1/observations?start=…&amp;end=…</code>, OpenAPI sur <code>/docs</code></td><td><span class="tag ok">Vérifié le 16 nov.</span> 200, 422</td></tr>
-      <tr><td>Visualiser les valeurs : courbe interactive et filtre de période</td><td>Interface React : filtre, résumé, courbe SVG, tableau des valeurs</td><td><span class="tag ok">Vérifié le 16 nov.</span> Chrome, données réelles</td></tr>
-      <tr><td>Comparer deux épisodes avec une interprétation prudente</td><td>El Niño 1997-1998 et La Niña 1988-1989, valeurs calculées depuis l’API, limites écrites</td><td><span class="tag ok">Vérifié le 16 nov.</span></td></tr>
+      <tr><td>Importer une série NOAA dans PostgreSQL, identifier la source, contrôler les doublons</td><td><code>etl/transform_oni.py</code> puis <code>backend/app/import_oni.py</code> ; provenance par import ; doublons contrôlés à trois niveaux</td><td><span class="tag ok">Vérifié le 17 nov.</span> 921 saisons, second import : 0 ajout</td></tr>
+      <tr><td>Exposer les observations par une API documentée, filtrée et validée</td><td><code>GET /api/v1/observations?start=…&amp;end=…</code>, OpenAPI sur <code>/docs</code></td><td><span class="tag ok">Vérifié le 17 nov.</span> 200, 422</td></tr>
+      <tr><td>Visualiser les valeurs : courbe interactive et filtre de période</td><td>Interface React : filtre, résumé, courbe SVG, tableau des valeurs</td><td><span class="tag ok">Vérifié le 17 nov.</span> Chrome, données réelles</td></tr>
+      <tr><td>Comparer deux épisodes avec une interprétation prudente</td><td>El Niño 1997-1998 et La Niña 1988-1989, valeurs calculées depuis l’API, limites écrites</td><td><span class="tag ok">Vérifié le 17 nov.</span></td></tr>
     </tbody>
   </table>
 
@@ -230,7 +230,7 @@
 
   <h2>2.1 User stories prioritaires</h2>
   <table>
-    <thead><tr><th style="width:5%">ID</th><th>User story</th><th style="width:9%">Priorité</th><th style="width:21%">État au 16 nov.</th></tr></thead>
+    <thead><tr><th style="width:5%">ID</th><th>User story</th><th style="width:9%">Priorité</th><th style="width:21%">État au 17 nov.</th></tr></thead>
     <tbody>
       <tr><td>US1</td><td>En tant que visiteur, je veux voir l’ONI depuis 1950 sur une courbe, avec son unité et sa source, afin de repérer les périodes chaudes et froides.</td><td>Must</td><td>Réalisé</td></tr>
       <tr><td>US2</td><td>En tant que visiteur, je veux choisir une date de début et de fin afin d’examiner un épisode précis.</td><td>Must</td><td>Réalisé</td></tr>
@@ -688,8 +688,8 @@
   </table>
   <div class="decision">
     <p><strong>Pourquoi la base est reconstructible.</strong> Le fichier brut et sa fiche de provenance sont versionnés dans Git :
-      migration, transformation et import recréent les 921 observations à l’identique. Vérifié le 16 novembre 2026 sur une base vide
-      créée pour l’occasion : 921 observations, puis 0 ajout au second import, 1 seul import enregistré. La sauvegarde (§ 7)
+      migration, transformation et import recréent les 921 observations à l’identique. Vérifié les 16 et 17 novembre 2026 sur une base vide,
+      le 17 depuis un clone propre du dépôt : 921 observations, puis 0 ajout au second import, 1 seul import enregistré. La sauvegarde (§ 7)
       protège donc surtout l’historique des imports, pas des données irremplaçables.</p>
   </div>
 </section>
@@ -700,7 +700,7 @@
 
   <h2>5.1 Backlog personnel priorisé</h2>
   <table>
-    <thead><tr><th style="width:6%">ID</th><th>Élément</th><th style="width:9%">Priorité</th><th style="width:26%">État au 16 nov. 2026</th></tr></thead>
+    <thead><tr><th style="width:6%">ID</th><th>Élément</th><th style="width:9%">Priorité</th><th style="width:26%">État au 17 nov. 2026</th></tr></thead>
     <tbody>
       <tr><td>B1</td><td>Étudier la source NOAA : format, unité, saisons, version, limites</td><td>Must</td><td>Fait le 9 nov.</td></tr>
       <tr><td>B2</td><td>Transformation pandas/NumPy et test de données</td><td>Must</td><td>Fait le 12 nov. (28 tests)</td></tr>
@@ -710,7 +710,7 @@
       <tr><td>B6</td><td>Interface : filtre, courbe, tableau, états</td><td>Must</td><td>Fait le 15 nov.</td></tr>
       <tr><td>B7</td><td>Comparaison de deux épisodes</td><td>Must</td><td>Fait le 15 nov.</td></tr>
       <tr><td>B8</td><td>Test frontend du changement de période</td><td>Must</td><td>Fait le 15 nov. (12 tests)</td></tr>
-      <tr><td>B9</td><td>Dossier de conception</td><td>Must</td><td>Rédigé le 16 nov. ; retour d’expérience à compléter</td></tr>
+      <tr><td>B9</td><td>Dossier de conception</td><td>Must</td><td>Rédigé le 16 nov., revérifié le 17 ; retour d’expérience à compléter</td></tr>
       <tr><td>B10</td><td>Déploiement documenté (VPS, Compose, Caddy)</td><td>Must</td><td>Proposé (§ 7), non déployé</td></tr>
       <tr><td>B11</td><td>Afficher la date d’extraction dans l’interface</td><td>Should</td><td>À faire : l’API ne la renvoie pas</td></tr>
       <tr><td>B12</td><td>Règle d’acceptation des révisions NOAA</td><td>Should</td><td>À décider</td></tr>
@@ -730,7 +730,7 @@
       <tr><td>Journée 2</td><td>Modèle de données, migrations, transformation, import</td><td>Provenance et test de données</td><td>12 et 14 novembre</td></tr>
       <tr><td>Journée 3</td><td>API, filtres, validation, intégration React</td><td>Test API : période valide et entrée invalide</td><td>14 et 15 novembre</td></tr>
       <tr><td>Journée 4</td><td>Courbe, sélection de période, comparaison, accessibilité</td><td>Test frontend, contrôle des interprétations</td><td>15 novembre</td></tr>
-      <tr><td>Journée 5</td><td>Intégration, corrections, dossier, déploiement proposé, répétition de la code review</td><td>Trois tests documentés, dossier ≤ 15 pages, explications personnelles</td><td>16 novembre ; répétition orale à faire</td></tr>
+      <tr><td>Journée 5</td><td>Intégration, corrections, dossier, déploiement proposé, répétition de la code review</td><td>Trois tests documentés, dossier ≤ 15 pages, explications personnelles</td><td>16 et 17 novembre ; répétition orale à faire</td></tr>
     </tbody>
   </table>
 
@@ -746,6 +746,7 @@
       <tr><td>14 nov.</td><td>PostgreSQL, modèles, migration et 15 tests ; import, API et 18 tests</td><td>Claude</td></tr>
       <tr><td>15 nov.</td><td>Interface, comparaison et 12 tests Vitest</td><td>Claude</td></tr>
       <tr><td>16 nov.</td><td>Revérification complète sur les vraies données, dossier de conception</td><td>Claude</td></tr>
+      <tr><td>17 nov.</td><td>Rejeu complet depuis un clone propre du dépôt, finalisation du dossier</td><td>Claude</td></tr>
     </tbody>
   </table>
   <p>Le projet a avancé par étapes validées, chacune lancée par un cahier des charges de l’étudiant et close par des commits
@@ -795,20 +796,20 @@
 <section class="chapter">
   <h1>6. Qualité et sécurité</h1>
 
-  <h2>6.1 Tests exécutés <span class="tag ok">Vérifié le 16 nov. 2026</span></h2>
+  <h2>6.1 Tests exécutés <span class="tag ok">Vérifié le 17 nov. 2026, sur un clone propre</span></h2>
   <table>
     <thead><tr><th style="width:22%">Test exigé par le sujet</th><th style="width:28%">Fichier</th><th>Commande, depuis la racine du dépôt</th><th style="width:15%">Résultat</th></tr></thead>
     <tbody>
-      <tr><td>Transformation des données</td><td><code>etl/tests/test_transform_oni.py</code></td><td><code>.\etl\.venv\Scripts\python.exe -m pytest etl/tests -q</code></td><td>28 passed (4,2 s)</td></tr>
-      <tr><td>API filtrée : période valide et entrée invalide</td><td><code>backend/tests/test_observations_api.py</code></td><td>depuis <code>backend</code> : <code>.\.venv\Scripts\python.exe -m pytest tests/test_observations_api.py</code></td><td>10 passed (3,2 s)</td></tr>
-      <tr><td>Frontend : changement de période</td><td><code>frontend/src/App.test.tsx</code></td><td><code>npm.cmd --prefix frontend test</code></td><td>12 passed (5,8 s)</td></tr>
-      <tr><td>Backend complet : santé, schéma, import, route</td><td><code>backend/tests/</code></td><td>depuis <code>backend</code> : <code>.\.venv\Scripts\python.exe -m pytest -q -W error</code></td><td>34 passed (4,8 s)</td></tr>
+      <tr><td>Transformation des données</td><td><code>etl/tests/test_transform_oni.py</code></td><td><code>.\etl\.venv\Scripts\python.exe -m pytest etl/tests -q</code></td><td>28 passed (1,1 s)</td></tr>
+      <tr><td>API filtrée : période valide et entrée invalide</td><td><code>backend/tests/test_observations_api.py</code></td><td>depuis <code>backend</code> : <code>.\.venv\Scripts\python.exe -m pytest tests/test_observations_api.py</code></td><td>10 passed (3,1 s)</td></tr>
+      <tr><td>Frontend : changement de période</td><td><code>frontend/src/App.test.tsx</code></td><td><code>npm.cmd --prefix frontend test</code></td><td>12 passed (4,4 s)</td></tr>
+      <tr><td>Backend complet : santé, schéma, import, route</td><td><code>backend/tests/</code></td><td>depuis <code>backend</code> : <code>.\.venv\Scripts\python.exe -m pytest -q -W error</code></td><td>34 passed (3,4 s)</td></tr>
     </tbody>
   </table>
   <ul>
     <li><strong>Ce que prouvent les tests.</strong> La transformation est testée sur de petits fichiers fictifs et sur le fichier NOAA réel. Les tests de l’API et de l’import tournent sur une vraie base PostgreSQL jetable (<code>enso_monitor_test</code>), une transaction annulée par test (D26). Le test frontend saisit une nouvelle période, puis vérifie le résumé, la valeur lue sur la courbe au clavier et les lignes du tableau.</li>
     <li><strong>Erreurs volontaires.</strong> Chaque suite a été mise à l’épreuve en cassant le code exprès : mois central décalé, conflit ignoré, borne de fin exclue, formulaire qui ne transmet plus la période… À chaque fois au moins un test a échoué, puis le code a été restauré à l’identique.</li>
-    <li><strong>Démonstration sur les données réelles</strong>, le 16 novembre : import depuis une base vide (921, puis 0 ajout), requêtes réelles (200, 422), changement de période dans Chrome (mai 1997 à avril 1998 : 12 saisons, de +0,71 à +2,37 °C).</li>
+    <li><strong>Démonstration sur les données réelles</strong>, le 17 novembre, depuis un clone propre du dépôt installé selon le README : import dans une base vide (921, puis 0 ajout), requêtes réelles (200, 422), changement de période dans Chrome (juillet 2015 à mars 2016 : 9 saisons) et comparaison calculée (12 saisons par épisode).</li>
   </ul>
 
   <h2>6.2 Accessibilité et UX</h2>
@@ -839,13 +840,13 @@
       <tr><td>Secrets</td><td>Mot de passe dans <code>.env</code>, exclu de Git ; <code>.env.example</code> sans vrai secret. Le PDF du sujet est aussi exclu du dépôt public.</td></tr>
       <tr><td>Surface exposée</td><td>API en lecture seule (deux routes GET), sans compte ni administration ; PostgreSQL écoute sur <code>127.0.0.1</code> seulement ; aucune règle CORS ouverte.</td></tr>
       <tr><td>Messages d’erreur</td><td>503 générique « Base de données indisponible. », sans trace ni détail de connexion.</td></tr>
-      <tr><td>Dépendances</td><td>Versions fixées (<code>package-lock.json</code>, <code>requirements*.txt</code>). <code>npm audit --omit=dev</code> : 0 vulnérabilité le 16 novembre. 9 alertes modérées (<code>minimatch</code>) dans la chaîne ESLint, outil de développement absent de la page livrée.</td></tr>
+      <tr><td>Dépendances</td><td>Versions fixées (<code>package-lock.json</code>, <code>requirements*.txt</code>). <code>npm audit --omit=dev</code> : 0 vulnérabilité le 17 novembre. 9 alertes modérées (<code>minimatch</code>) dans la chaîne ESLint, outil de développement absent de la page livrée.</td></tr>
     </tbody>
   </table>
 
   <h2>6.5 Performance</h2>
   <p>921 lignes au plus par réponse, servies par l’index <code>(climate_index_id, reference_month)</code> ; aucune pagination nécessaire.
-    Page livrée : 237,93 kB de JavaScript (75,28 kB compressés) et 4,79 kB de CSS (build du 16 novembre). Délais maîtrisés :
+    Page livrée : 237,93 kB de JavaScript (75,28 kB compressés) et 4,79 kB de CSS (build du 17 novembre). Délais maîtrisés :
     5 s pour la connexion à la base, 10 s pour une requête du navigateur.</p>
 
   <h2>6.6 Traitement des anomalies rencontrées</h2>
@@ -883,8 +884,8 @@
     <thead><tr><th style="width:50%"><span class="tag ok">Testé en local</span></th><th><span class="tag prop">Proposé, non testé</span></th></tr></thead>
     <tbody>
       <tr><td>PostgreSQL 18.7 dans Docker Compose (<code>compose.yaml</code>), port lié à <code>127.0.0.1</code>, volume nommé, contrôle de santé</td><td>Fichier <code>compose.prod.yaml</code> avec Caddy, API, base et ETL</td></tr>
-      <tr><td>Migration, transformation et import depuis une base vide (16 nov.)</td><td>Images Docker de l’API et de l’ETL (Dockerfiles à écrire)</td></tr>
-      <tr><td>API Uvicorn et frontend Vite, proxy <code>/api</code> ; build de production (<code>npm run build</code>) ; <code>npm audit --omit=dev</code> : 0 vulnérabilité (16 nov.)</td><td>Caddy : HTTPS, fichiers statiques, reverse proxy</td></tr>
+      <tr><td>Migration, transformation et import depuis une base vide (17 nov.)</td><td>Images Docker de l’API et de l’ETL (Dockerfiles à écrire)</td></tr>
+      <tr><td>API Uvicorn et frontend Vite, proxy <code>/api</code> ; build de production (<code>npm run build</code>) ; <code>npm audit --omit=dev</code> : 0 vulnérabilité (17 nov.)</td><td>Caddy : HTTPS, fichiers statiques, reverse proxy</td></tr>
       <tr><td>Sauvegarde <code>pg_dump</code> puis restauration dans une base jetable : 921 observations, NDJ 2015 = 2.59, migration <code>86057118b37f</code> (16 nov.)</td><td>VPS, pare-feu, sauvegardes planifiées, supervision</td></tr>
     </tbody>
   </table>
@@ -1069,7 +1070,7 @@ docker compose -f compose.prod.yaml exec -T db pg_restore -U enso -d enso_monito
     <thead><tr><th style="width:16%">Qui</th><th>Contribution</th></tr></thead>
     <tbody>
       <tr><td>Codex (4 et 8 nov.)</td><td>Lecture et synthèse du sujet ; organisation du dépôt ; code initial (page React, route de santé et son test) ; configuration ; documentation ; commits du 8 novembre.</td></tr>
-      <tr><td>Claude Code (9 au 16 nov.)</td><td>Lecture des sources NOAA, téléchargement et contrôles du fichier ; transformation et tests ; schéma, migration, import, API et tests ; interface, comparaison et tests ; démonstrations et vérifications ; rédaction de ce dossier et de ses schémas.</td></tr>
+      <tr><td>Claude Code (9 au 17 nov.)</td><td>Lecture des sources NOAA, téléchargement et contrôles du fichier ; transformation et tests ; schéma, migration, import, API et tests ; interface, comparaison et tests ; démonstrations et vérifications, dont le rejeu depuis un clone propre ; rédaction de ce dossier et de ses schémas.</td></tr>
       <tr><td>Étudiant</td><td>Choix de l’ONI (D02) ; cahier des charges de chaque étape ; validation des étapes et autorisation de chaque publication.</td></tr>
     </tbody>
   </table>
