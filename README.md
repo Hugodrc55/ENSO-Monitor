@@ -6,12 +6,16 @@ validation personnelle à chaque étape. Début : **4 novembre 2026**.
 Dépôt GitHub : [Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor),
 publié depuis le **10 novembre 2026**. Voir [le suivi Git](docs/GIT.md).
 
-## État au 16 novembre 2026
+## État au 17 novembre 2026
 
 **Dossier de conception** (livrable B, 15 pages) : source
 [`docs/dossier/dossier.html`](docs/dossier/README.md), export PDF par
 `docs/dossier/exporter.ps1`. Quatre passages restent à compléter par l'étudiant
 avant le rendu.
+
+**Rejeu depuis un clone propre** (17 novembre) : installation selon ce README,
+migration, import NOAA, tests, build, API et interface ont fonctionné sans fichier
+local supplémentaire. Détail dans [le journal](docs/JOURNAL.md).
 
 - **Premier écran (4 novembre)** : une page React/TypeScript appelait
   `GET /api/v1/health` pour vérifier que l'API répondait. Elle a été remplacée le
@@ -132,6 +136,14 @@ permet de le gérer.
 
 ## Transformation des données NOAA
 
+**Aucun téléchargement n'est nécessaire** : le fichier NOAA authentique
+(`data/raw/noaa-cpc_oni-ersstv6_2026-11-09.txt`), son empreinte (`SHA256SUMS`) et
+sa fiche de provenance sont versionnés dans le dépôt. Un clone les contient
+déjà. Seul `data/processed/` est produit en local, par la commande ci-dessous.
+Pour une extraction plus récente, la procédure (nouveau fichier daté, jamais
+d'écrasement) est décrite dans [data/raw/README.md](data/raw/README.md#mise-à-jour) ;
+un fichier dont la NOAA a révisé des valeurs sera refusé par l'import (D24).
+
 Depuis la racine du dépôt :
 
 ```powershell
@@ -167,6 +179,9 @@ docker compose up -d --wait db
 ```
 
 `upgrade head` crée le schéma ; `current` doit afficher `86057118b37f (head)`.
+Si le port 5432 est déjà occupé (autre PostgreSQL installé sur la machine),
+choisir un autre port dans `.env` (`POSTGRES_PORT=5433`, par exemple) :
+`DATABASE_URL` et `TEST_DATABASE_URL` le reprennent automatiquement.
 SQLAlchemy et Alembic lisent la même variable `DATABASE_URL`, définie dans
 `.env`. L'API ne se connecte à la base que pour servir les observations :
 `/api/v1/health` répond même quand PostgreSQL est arrêté.
@@ -321,9 +336,9 @@ Push-Location backend
 Pop-Location
 ```
 
-Dernière exécution complète, le 16 novembre 2026 : transformation **28 passed**,
-backend **34 passed** (dont la route filtrée, 10 passed), frontend **12 passed** ;
-lint et build sans erreur.
+Dernière exécution complète, le 17 novembre 2026, sur un clone propre du dépôt :
+transformation **28 passed**, backend **34 passed** (dont la route filtrée,
+10 passed), frontend **12 passed** ; lint et build sans erreur.
 
 `build` lance d'abord la vérification TypeScript stricte, puis Vite produit `frontend/dist/`.
 Pour consulter ce résultat localement, avec l'API toujours lancée :
