@@ -33,6 +33,8 @@
   pre { margin: 3px 0 6px; padding: 5px 7px; font: 7.1pt/1.3 Consolas, "Cascadia Mono", monospace; background: #f5f8f7; border: 1px solid #dfe9e6; border-radius: 4px; white-space: pre-wrap; tab-size: 2; break-inside: avoid; }
   table { width: 100%; margin: 3px 0 7px; border-collapse: collapse; font-size: 8.1pt; break-inside: auto; }
   tr { break-inside: avoid; }
+  table.dense { font-size: 7.6pt; }
+  table.dense th, table.dense td { padding: 2.4px 4px; }
   th, td { padding: 2.6px 5px; border-bottom: 1px solid #dfe9e6; text-align: left; vertical-align: top; }
   thead th { background: #eaf2f0; font-weight: 650; }
   tbody th { font-weight: 650; }
@@ -145,7 +147,7 @@
       <dt>Étudiant</dt><dd><span class="todo">À compléter : nom et prénom</span></dd>
       <dt>Livrable</dt><dd>Livrable B — dossier de conception, indépendant du README (15 pages maximum, couverture comprise)</dd>
       <dt>Code source</dt><dd>Dépôt GitHub <code>Hugodrc55/ENSO-Monitor</code>, branche <code>main</code></dd>
-      <dt>État décrit</dt><dd>Dépôt au 17 novembre 2026 · remise le 22 novembre 2026</dd>
+      <dt>État décrit</dt><dd>Dépôt au 19 novembre 2026 · remise le 22 novembre 2026</dd>
       <dt>Données</dt><dd>NOAA CPC, fichier <code>oni.ascii.txt</code> extrait le 9 novembre 2026 (921 saisons, DJF 1950 → ASO 2026)</dd>
     </dl>
   </div>
@@ -168,7 +170,7 @@
     <p class="legend-box"><span class="tag ok">Vérifié</span> commande ou démonstration réellement exécutée, avec sa date.
       <span class="tag prop">Proposé</span> conçu mais ni réalisé ni testé. Les valeurs ONI citées viennent du fichier
       NOAA extrait le 9 novembre 2026 ; les tests automatisés utilisent des valeurs fictives, déclarées comme telles.
-      Les décisions sont numérotées D01 à D31 dans <code>docs/DECISIONS.md</code>.</p>
+      Les décisions sont numérotées D01 à D33 dans <code>docs/DECISIONS.md</code>.</p>
   </div>
 
   <h1 style="margin-top:10px">1. Besoin et contexte</h1>
@@ -258,7 +260,7 @@
   </table>
 
   <h2>2.3 Parcours</h2>
-  <p><strong>Parcours principal.</strong> (1) À l’ouverture, la page charge toute la série : 921 saisons, résumé, courbe et source.
+  <p><strong>Parcours principal.</strong> (1) À l’ouverture, la page charge toute la série : bande des saisons en en-tête, puis 921 saisons, résumé, courbe et source.
     (2) Le visiteur saisit une période puis « Afficher » : une seule requête part, l’ancienne est annulée. (3) Il lit les valeurs
     à la souris, au doigt ou au clavier, ou déplie le tableau. (4) Il descend vers la comparaison : tableau côte à côte,
     observation construite à partir des valeurs, puis limites. <strong>Parcours d’erreur.</strong> Dates vides ou inversées :
@@ -271,9 +273,11 @@
         <rect x="1" y="1" width="418" height="338" rx="8" class="w-frame"/>
         <path d="M1,9 a8,8 0 0 1 8,-8 h402 a8,8 0 0 1 8,8 v10 h-418 z" class="w-bar"/>
         <circle cx="12" cy="10" r="3" fill="#b7cbc6"/><circle cx="22" cy="10" r="3" fill="#b7cbc6"/><circle cx="32" cy="10" r="3" fill="#b7cbc6"/>
-        <text x="14" y="34" class="w-tb">≈ ENSO Monitor</text>
-        <rect x="14" y="42" width="230" height="8" rx="2" class="w-ghost"/>
-        <rect x="14" y="54" width="300" height="4" rx="2" class="w-ghost"/>
+        <rect x="1" y="19" width="418" height="43" fill="#0d2b3e"/>
+        <text x="14" y="30" class="w-tb" style="fill:#fff">≈ ENSO Monitor</text>
+        <rect x="14" y="35" width="190" height="7" rx="1" fill="#cfe0e6"/>
+        <rect x="14" y="44" width="250" height="3" rx="1" fill="#7f9aa6"/>
+        <g><rect x="14.0" y="50" width="4.41" height="9" fill="rgb(163,189,213)"/><rect x="18.3" y="50" width="4.41" height="9" fill="rgb(238,243,244)"/><rect x="22.5" y="50" width="4.41" height="9" fill="rgb(227,208,206)"/><rect x="26.8" y="50" width="4.41" height="9" fill="rgb(235,234,234)"/><rect x="31.0" y="50" width="4.41" height="9" fill="rgb(224,196,193)"/><rect x="35.3" y="50" width="4.41" height="9" fill="rgb(198,215,227)"/><rect x="39.6" y="50" width="4.41" height="9" fill="rgb(170,195,216)"/><rect x="43.8" y="50" width="4.41" height="9" fill="rgb(170,195,216)"/><rect x="48.1" y="50" width="4.41" height="9" fill="rgb(237,239,240)"/><rect x="52.3" y="50" width="4.41" height="9" fill="rgb(208,146,137)"/><rect x="56.6" y="50" width="4.41" height="9" fill="rgb(227,208,205)"/><rect x="60.9" y="50" width="4.41" height="9" fill="rgb(235,234,234)"/><rect x="65.1" y="50" width="4.41" height="9" fill="rgb(236,237,238)"/><rect x="69.4" y="50" width="4.41" height="9" fill="rgb(237,241,242)"/><rect x="73.7" y="50" width="4.41" height="9" fill="rgb(224,233,238)"/><rect x="77.9" y="50" width="4.41" height="9" fill="rgb(226,234,239)"/><rect x="82.2" y="50" width="4.41" height="9" fill="rgb(218,178,172)"/><rect x="86.4" y="50" width="4.41" height="9" fill="rgb(188,208,223)"/><rect x="90.7" y="50" width="4.41" height="9" fill="rgb(223,195,191)"/><rect x="95.0" y="50" width="4.41" height="9" fill="rgb(220,184,179)"/><rect x="99.2" y="50" width="4.41" height="9" fill="rgb(216,227,235)"/><rect x="103.5" y="50" width="4.41" height="9" fill="rgb(202,217,229)"/><rect x="107.7" y="50" width="4.41" height="9" fill="rgb(226,202,199)"/><rect x="112.0" y="50" width="4.41" height="9" fill="rgb(223,195,191)"/><rect x="116.3" y="50" width="4.41" height="9" fill="rgb(225,233,238)"/><rect x="120.5" y="50" width="4.41" height="9" fill="rgb(163,189,213)"/><rect x="124.8" y="50" width="4.41" height="9" fill="rgb(218,228,236)"/><rect x="129.0" y="50" width="4.41" height="9" fill="rgb(209,148,140)"/><rect x="133.3" y="50" width="4.41" height="9" fill="rgb(125,162,197)"/><rect x="137.6" y="50" width="4.41" height="9" fill="rgb(178,200,219)"/><rect x="141.8" y="50" width="4.41" height="9" fill="rgb(164,190,213)"/><rect x="146.1" y="50" width="4.41" height="9" fill="rgb(185,205,222)"/><rect x="150.3" y="50" width="4.41" height="9" fill="rgb(225,199,195)"/><rect x="154.6" y="50" width="4.41" height="9" fill="rgb(227,205,203)"/><rect x="158.9" y="50" width="4.41" height="9" fill="rgb(225,234,239)"/><rect x="163.1" y="50" width="4.41" height="9" fill="rgb(230,218,216)"/><rect x="167.4" y="50" width="4.41" height="9" fill="rgb(232,224,223)"/><rect x="171.7" y="50" width="4.41" height="9" fill="rgb(218,229,236)"/><rect x="175.9" y="50" width="4.41" height="9" fill="rgb(235,234,234)"/><rect x="180.2" y="50" width="4.41" height="9" fill="rgb(200,120,108)"/><rect x="184.4" y="50" width="4.41" height="9" fill="rgb(218,229,236)"/><rect x="188.7" y="50" width="4.41" height="9" fill="rgb(193,211,225)"/><rect x="193.0" y="50" width="4.41" height="9" fill="rgb(186,206,222)"/><rect x="197.2" y="50" width="4.41" height="9" fill="rgb(228,236,240)"/><rect x="201.5" y="50" width="4.41" height="9" fill="rgb(214,165,158)"/><rect x="205.7" y="50" width="4.41" height="9" fill="rgb(218,178,173)"/><rect x="210.0" y="50" width="4.41" height="9" fill="rgb(120,159,195)"/><rect x="214.3" y="50" width="4.41" height="9" fill="rgb(201,217,229)"/><rect x="218.5" y="50" width="4.41" height="9" fill="rgb(232,223,222)"/><rect x="222.8" y="50" width="4.41" height="9" fill="rgb(228,209,207)"/><rect x="227.0" y="50" width="4.41" height="9" fill="rgb(210,153,144)"/><rect x="231.3" y="50" width="4.41" height="9" fill="rgb(235,232,232)"/><rect x="235.6" y="50" width="4.41" height="9" fill="rgb(232,222,221)"/><rect x="239.8" y="50" width="4.41" height="9" fill="rgb(228,210,207)"/><rect x="244.1" y="50" width="4.41" height="9" fill="rgb(234,240,242)"/><rect x="248.3" y="50" width="4.41" height="9" fill="rgb(192,210,225)"/><rect x="252.6" y="50" width="4.41" height="9" fill="rgb(238,243,244)"/><rect x="256.9" y="50" width="4.41" height="9" fill="rgb(194,98,84)"/><rect x="261.1" y="50" width="4.41" height="9" fill="rgb(165,191,214)"/><rect x="265.4" y="50" width="4.41" height="9" fill="rgb(153,183,209)"/><rect x="269.7" y="50" width="4.41" height="9" fill="rgb(175,198,218)"/><rect x="273.9" y="50" width="4.41" height="9" fill="rgb(205,219,230)"/><rect x="278.2" y="50" width="4.41" height="9" fill="rgb(237,242,244)"/><rect x="282.4" y="50" width="4.41" height="9" fill="rgb(221,188,184)"/><rect x="286.7" y="50" width="4.41" height="9" fill="rgb(234,231,231)"/><rect x="291.0" y="50" width="4.41" height="9" fill="rgb(228,211,209)"/><rect x="295.2" y="50" width="4.41" height="9" fill="rgb(234,230,229)"/><rect x="299.5" y="50" width="4.41" height="9" fill="rgb(206,220,231)"/><rect x="303.7" y="50" width="4.41" height="9" fill="rgb(232,223,222)"/><rect x="308.0" y="50" width="4.41" height="9" fill="rgb(132,167,200)"/><rect x="312.3" y="50" width="4.41" height="9" fill="rgb(191,210,225)"/><rect x="316.5" y="50" width="4.41" height="9" fill="rgb(227,206,203)"/><rect x="320.8" y="50" width="4.41" height="9" fill="rgb(221,231,237)"/><rect x="325.0" y="50" width="4.41" height="9" fill="rgb(166,192,214)"/><rect x="329.3" y="50" width="4.41" height="9" fill="rgb(190,208,224)"/><rect x="333.6" y="50" width="4.41" height="9" fill="rgb(237,239,240)"/><rect x="337.8" y="50" width="4.41" height="9" fill="rgb(216,228,235)"/><rect x="342.1" y="50" width="4.41" height="9" fill="rgb(230,218,217)"/><rect x="346.3" y="50" width="4.41" height="9" fill="rgb(208,145,136)"/><rect x="350.6" y="50" width="4.41" height="9" fill="rgb(208,145,136)"/><rect x="354.9" y="50" width="4.41" height="9" fill="rgb(234,240,242)"/><rect x="359.1" y="50" width="4.41" height="9" fill="rgb(203,218,229)"/><rect x="363.4" y="50" width="4.41" height="9" fill="rgb(224,197,194)"/><rect x="367.7" y="50" width="4.41" height="9" fill="rgb(224,198,194)"/><rect x="371.9" y="50" width="4.41" height="9" fill="rgb(235,241,243)"/><rect x="376.2" y="50" width="4.41" height="9" fill="rgb(181,203,221)"/><rect x="380.4" y="50" width="4.41" height="9" fill="rgb(174,197,217)"/><rect x="384.7" y="50" width="4.41" height="9" fill="rgb(192,210,225)"/><rect x="389.0" y="50" width="4.41" height="9" fill="rgb(205,135,125)"/><rect x="393.2" y="50" width="4.41" height="9" fill="rgb(234,231,231)"/><rect x="397.5" y="50" width="4.41" height="9" fill="rgb(220,230,237)"/><rect x="401.7" y="50" width="4.41" height="9" fill="rgb(222,190,186)"/></g>
         <rect x="10" y="64" width="400" height="206" rx="6" class="w-card"/>
         <text x="20" y="78" class="w-tb">Anomalie ONI par saison</text>
         <rect x="20" y="84" width="92" height="14" rx="3" class="w-input"/><text x="25" y="93.5" class="w-t">Début 01/07/2015</text>
@@ -298,28 +302,31 @@
         <text x="20" y="236" class="w-t2">— ONI, une valeur par saison de 3 mois   - - seuils ±0,5 °C</text>
         <text x="20" y="245" class="w-t2">Source : NOAA CPC, Oceanic Niño Index (ONI), ERSSTv6</text>
         <text x="20" y="261" class="w-tb">▸ Tableau des valeurs (9 saisons)</text>
-        <rect x="10" y="276" width="400" height="58" rx="6" class="w-card"/>
+        <rect x="10" y="276" width="400" height="2.5" fill="#0d2b3e"/>
         <text x="20" y="290" class="w-tb">Deux épisodes comparés</text>
         <rect x="20" y="295" width="378" height="9" fill="#eaf2f0"/>
         <text x="24" y="301.5" class="w-t2">Indicateur</text><text x="170" y="301.5" class="w-t2">El Niño 1997-1998</text><text x="290" y="301.5" class="w-t2">La Niña 1988-1989</text>
         <rect x="24" y="309" width="90" height="4" rx="1" class="w-ghost"/><rect x="170" y="309" width="70" height="4" rx="1" class="w-ghost"/><rect x="290" y="309" width="70" height="4" rx="1" class="w-ghost"/>
         <rect x="24" y="317" width="90" height="4" rx="1" class="w-ghost"/><rect x="170" y="317" width="70" height="4" rx="1" class="w-ghost"/><rect x="290" y="317" width="70" height="4" rx="1" class="w-ghost"/>
         <rect x="24" y="325" width="160" height="4" rx="1" class="w-ghost"/>
-        <g class="callout"><circle cx="270" cy="91" r="6.5"/><text x="270" y="94">1</text></g>
-        <g class="callout"><circle cx="214" cy="107.5" r="6.5"/><text x="214" y="110.5">2</text></g>
-        <g class="callout"><circle cx="403" cy="123" r="6.5"/><text x="403" y="126">3</text></g>
-        <g class="callout"><circle cx="186" cy="141.5" r="6.5"/><text x="186" y="144.5">4</text></g>
-        <g class="callout"><circle cx="403" cy="187" r="6.5"/><text x="403" y="190">5</text></g>
-        <g class="callout"><circle cx="230" cy="240" r="6.5"/><text x="230" y="243">6</text></g>
-        <g class="callout"><circle cx="160" cy="258" r="6.5"/><text x="160" y="261">7</text></g>
-        <g class="callout"><circle cx="403" cy="299" r="6.5"/><text x="403" y="302">8</text></g>
+        <g class="callout"><circle cx="411" cy="54.5" r="6.5"/><text x="411" y="57.5">1</text></g>
+        <g class="callout"><circle cx="270" cy="91" r="6.5"/><text x="270" y="94">2</text></g>
+        <g class="callout"><circle cx="214" cy="107.5" r="6.5"/><text x="214" y="110.5">3</text></g>
+        <g class="callout"><circle cx="403" cy="123" r="6.5"/><text x="403" y="126">4</text></g>
+        <g class="callout"><circle cx="186" cy="141.5" r="6.5"/><text x="186" y="144.5">5</text></g>
+        <g class="callout"><circle cx="403" cy="187" r="6.5"/><text x="403" y="190">6</text></g>
+        <g class="callout"><circle cx="230" cy="240" r="6.5"/><text x="230" y="243">7</text></g>
+        <g class="callout"><circle cx="160" cy="258" r="6.5"/><text x="160" y="261">8</text></g>
+        <g class="callout"><circle cx="403" cy="299" r="6.5"/><text x="403" y="302">9</text></g>
       </svg>
       <svg class="diagram" viewBox="0 0 170 340" role="img" aria-label="Maquette de la page sur mobile">
         <rect x="1" y="1" width="168" height="338" rx="16" class="w-frame"/>
         <rect x="62" y="6" width="46" height="5" rx="2.5" class="w-bar"/>
-        <text x="12" y="27" class="w-tb">≈ ENSO Monitor</text>
-        <rect x="12" y="33" width="120" height="7" rx="2" class="w-ghost"/>
-        <rect x="12" y="44" width="146" height="3.5" rx="1.5" class="w-ghost"/>
+        <rect x="2" y="14" width="166" height="38" fill="#0d2b3e"/>
+        <text x="12" y="25" class="w-tb" style="fill:#fff">≈ ENSO Monitor</text>
+        <rect x="12" y="29" width="110" height="6" rx="1" fill="#cfe0e6"/>
+        <rect x="12" y="37" width="140" height="2.5" rx="1" fill="#7f9aa6"/>
+        <g><rect x="12.0" y="42" width="3.32" height="7" fill="rgb(200,216,228)"/><rect x="15.2" y="42" width="3.32" height="7" fill="rgb(231,221,220)"/><rect x="18.3" y="42" width="3.32" height="7" fill="rgb(237,238,239)"/><rect x="21.5" y="42" width="3.32" height="7" fill="rgb(170,195,216)"/><rect x="24.7" y="42" width="3.32" height="7" fill="rgb(223,193,188)"/><rect x="27.9" y="42" width="3.32" height="7" fill="rgb(231,221,220)"/><rect x="31.0" y="42" width="3.32" height="7" fill="rgb(237,239,240)"/><rect x="34.2" y="42" width="3.32" height="7" fill="rgb(225,234,239)"/><rect x="37.4" y="42" width="3.32" height="7" fill="rgb(235,234,234)"/><rect x="40.6" y="42" width="3.32" height="7" fill="rgb(222,190,185)"/><rect x="43.7" y="42" width="3.32" height="7" fill="rgb(209,222,232)"/><rect x="46.9" y="42" width="3.32" height="7" fill="rgb(224,199,195)"/><rect x="50.1" y="42" width="3.32" height="7" fill="rgb(194,211,226)"/><rect x="53.3" y="42" width="3.32" height="7" fill="rgb(226,205,202)"/><rect x="56.4" y="42" width="3.32" height="7" fill="rgb(152,181,208)"/><rect x="59.6" y="42" width="3.32" height="7" fill="rgb(175,198,218)"/><rect x="62.8" y="42" width="3.32" height="7" fill="rgb(226,202,199)"/><rect x="66.0" y="42" width="3.32" height="7" fill="rgb(236,236,236)"/><rect x="69.1" y="42" width="3.32" height="7" fill="rgb(238,243,244)"/><rect x="72.3" y="42" width="3.32" height="7" fill="rgb(218,177,171)"/><rect x="75.5" y="42" width="3.32" height="7" fill="rgb(205,220,230)"/><rect x="78.7" y="42" width="3.32" height="7" fill="rgb(207,221,231)"/><rect x="81.8" y="42" width="3.32" height="7" fill="rgb(216,172,165)"/><rect x="85.0" y="42" width="3.32" height="7" fill="rgb(161,188,212)"/><rect x="88.2" y="42" width="3.32" height="7" fill="rgb(230,216,214)"/><rect x="91.3" y="42" width="3.32" height="7" fill="rgb(222,192,188)"/><rect x="94.5" y="42" width="3.32" height="7" fill="rgb(230,216,214)"/><rect x="97.7" y="42" width="3.32" height="7" fill="rgb(213,225,234)"/><rect x="100.9" y="42" width="3.32" height="7" fill="rgb(216,170,164)"/><rect x="104.0" y="42" width="3.32" height="7" fill="rgb(159,187,211)"/><rect x="107.2" y="42" width="3.32" height="7" fill="rgb(190,208,224)"/><rect x="110.4" y="42" width="3.32" height="7" fill="rgb(230,216,214)"/><rect x="113.6" y="42" width="3.32" height="7" fill="rgb(231,221,220)"/><rect x="116.7" y="42" width="3.32" height="7" fill="rgb(229,237,240)"/><rect x="119.9" y="42" width="3.32" height="7" fill="rgb(196,213,227)"/><rect x="123.1" y="42" width="3.32" height="7" fill="rgb(235,241,243)"/><rect x="126.3" y="42" width="3.32" height="7" fill="rgb(194,211,226)"/><rect x="129.4" y="42" width="3.32" height="7" fill="rgb(216,227,235)"/><rect x="132.6" y="42" width="3.32" height="7" fill="rgb(237,241,242)"/><rect x="135.8" y="42" width="3.32" height="7" fill="rgb(208,145,136)"/><rect x="139.0" y="42" width="3.32" height="7" fill="rgb(218,229,236)"/><rect x="142.1" y="42" width="3.32" height="7" fill="rgb(224,198,194)"/><rect x="145.3" y="42" width="3.32" height="7" fill="rgb(208,222,232)"/><rect x="148.5" y="42" width="3.32" height="7" fill="rgb(183,204,221)"/><rect x="151.7" y="42" width="3.32" height="7" fill="rgb(220,183,178)"/><rect x="154.8" y="42" width="3.32" height="7" fill="rgb(232,223,222)"/></g>
         <rect x="8" y="54" width="154" height="214" rx="6" class="w-card"/>
         <text x="14" y="67" class="w-tb">Anomalie ONI par saison</text>
         <rect x="14" y="72" width="142" height="13" rx="3" class="w-input"/><text x="18" y="81" class="w-t">Début 01/07/2015</text>
@@ -338,15 +345,16 @@
         <polyline points="20,200 36,197 52,194 68,191 84,189.5 100,188 116,189 132,192 148,197" fill="none" stroke="#173a44" stroke-width="1.1"/>
         <rect x="14" y="234" width="142" height="3.5" rx="1.5" class="w-ghost"/><rect x="14" y="241" width="110" height="3.5" rx="1.5" class="w-ghost"/>
         <text x="14" y="259" class="w-t">▸ Tableau des valeurs</text>
-        <rect x="8" y="274" width="154" height="60" rx="6" class="w-card"/>
+        <rect x="8" y="274" width="154" height="2" fill="#0d2b3e"/>
         <text x="14" y="287" class="w-tb">Deux épisodes comparés</text>
         <rect x="14" y="292" width="142" height="8" fill="#eaf2f0"/>
         <rect x="16" y="305" width="40" height="3.5" rx="1" class="w-ghost"/><rect x="64" y="305" width="40" height="3.5" rx="1" class="w-ghost"/><rect x="112" y="305" width="40" height="3.5" rx="1" class="w-ghost"/>
         <rect x="16" y="313" width="40" height="3.5" rx="1" class="w-ghost"/><rect x="64" y="313" width="40" height="3.5" rx="1" class="w-ghost"/><rect x="112" y="313" width="40" height="3.5" rx="1" class="w-ghost"/>
-        <g class="callout"><circle cx="160" cy="93" r="6"/><text x="160" y="96">1</text></g>
-        <g class="callout"><circle cx="160" cy="142" r="6"/><text x="160" y="145">3</text></g>
-        <g class="callout"><circle cx="160" cy="205" r="6"/><text x="160" y="208">5</text></g>
-        <g class="callout"><circle cx="160" cy="296" r="6"/><text x="160" y="299">8</text></g>
+        <g class="callout"><circle cx="161" cy="45.5" r="6"/><text x="161" y="48.5">1</text></g>
+        <g class="callout"><circle cx="160" cy="93" r="6"/><text x="160" y="96">2</text></g>
+        <g class="callout"><circle cx="160" cy="142" r="6"/><text x="160" y="145">4</text></g>
+        <g class="callout"><circle cx="160" cy="205" r="6"/><text x="160" y="208">6</text></g>
+        <g class="callout"><circle cx="160" cy="296" r="6"/><text x="160" y="299">9</text></g>
       </svg>
     </div>
     <figcaption>Figure 1 — Maquettes de la page, sur ordinateur et sur mobile (390 px). Schémas conformes à l’écran réalisé ;
@@ -355,13 +363,14 @@
 
   <div class="cols-3-2">
     <figure style="margin-top:0">
-      <img class="capture" src="captures/interface-courbe-2026-11-16.png" alt="Capture de la section courbe de l’application">
-      <figcaption>Figure 2 — Écran réalisé : capture réelle du 16 novembre 2026, toute la série chargée depuis l’API
+      <img class="capture" src="captures/interface-courbe-2026-11-19.png" alt="Capture de la section courbe de l’application">
+      <figcaption>Figure 2 — Écran réalisé : capture réelle du 19 novembre 2026, toute la série chargée depuis l’API
         (données NOAA réelles, Chrome, 1280 px).</figcaption>
     </figure>
     <div class="small">
       <p><strong>Annotations</strong></p>
       <ol style="padding-left:14px">
+        <li><strong>Bande des saisons</strong> : un trait par saison, du bleu (anomalie négative) au rouge (positive), calculé depuis l’API ; vue d’ensemble, les valeurs se lisent plus bas.</li>
         <li><strong>Filtre de période</strong> : bornes incluses ; seul « Afficher » déclenche la requête, après contrôle des dates.</li>
         <li><strong>Message d’état</strong> (<code>role="status"</code>) : chargement, période et nombre de saisons, période vide, erreur.</li>
         <li><strong>Résumé</strong> : nombre de saisons, première et dernière, anomalies extrêmes en °C.</li>
@@ -371,7 +380,7 @@
         <li><strong>Tableau des valeurs</strong> dépliable : l’équivalent de la courbe, sans graphique.</li>
         <li><strong>Comparaison</strong> : tableau côte à côte, observation et limites.</li>
       </ol>
-      <p>Sur mobile, les champs passent l’un sous l’autre et le résumé sur deux colonnes ; à 390 px, aucun défilement horizontal (mesuré le 15 novembre).</p>
+      <p><strong>Identité visuelle</strong> : bleu abysse pour la structure, rouge pour El Niño, bleu pour La Niña, orange « bouée » pour le focus ; titres et chiffres en Bahnschrift. Sur mobile, le résumé passe sur deux colonnes ; à 390 px, aucun défilement horizontal (mesuré le 19 novembre).</p>
     </div>
   </div>
 </section>
@@ -642,7 +651,7 @@
       <tr><td>Import</td><td><code>backend/app/import_oni.py</code></td><td>Lit la fiche de provenance (Pydantic), recontrôle l’empreinte et les décimales, compare chaque saison à la base, puis écrit tout en une transaction ou rien.</td></tr>
       <tr><td>Base</td><td><code>backend/app/models.py</code>, <code>backend/alembic/</code></td><td>Schéma, contraintes et migration versionnée. Une seule variable <code>DATABASE_URL</code> pour SQLAlchemy et Alembic.</td></tr>
       <tr><td>API</td><td><code>backend/app/main.py</code>, <code>observations.py</code>, <code>database.py</code></td><td>Routes <code>/api/v1</code>, validation, codes 200, 404, 422 et 503, documentation OpenAPI sur <code>/docs</code>. Une session SQLAlchemy par requête.</td></tr>
-      <tr><td>Frontend</td><td><code>frontend/src/api.ts</code>, <code>useObservations.ts</code>, <code>components/</code></td><td>Appel HTTP et contrôle du JSON, chargement par période, rendu du filtre, de la courbe, du tableau et de la comparaison.</td></tr>
+      <tr><td>Frontend</td><td><code>frontend/src/api.ts</code>, <code>useObservations.ts</code>, <code>components/</code></td><td>Appel HTTP et contrôle du JSON, chargement par période, rendu de la bande des saisons, du filtre, de la courbe, du tableau et de la comparaison.</td></tr>
     </tbody>
   </table>
 
@@ -674,16 +683,19 @@
     <li><strong>Valeurs reprises telles que publiées</strong> : <code>ANOM</code> n’est jamais recalculé, car la période de référence de l’ONI change tous les 5 ans.</li>
   </ul>
 
-  <h2>4.5 Décisions d’architecture</h2>
-  <table>
-    <thead><tr><th style="width:17%">Décision</th><th style="width:28%">Besoin</th><th style="width:29%">Choix retenu</th><th>Limite concrète</th></tr></thead>
+  <h2>4.5 Argumentation des choix déterminants</h2>
+  <p class="small">Pour chaque choix : le besoin, les options envisagées, le choix retenu et son avantage, sa limite, et la
+    manière dont le résultat a été vérifié. Version détaillée : <code>docs/DECISIONS.md</code>.</p>
+  <table class="dense">
+    <thead><tr><th style="width:12%">Choix</th><th style="width:15%">Besoin</th><th style="width:15%">Options envisagées</th><th style="width:22%">Retenu, et avantage</th><th style="width:17%">Limite</th><th>Vérification</th></tr></thead>
     <tbody>
-      <tr><td>PostgreSQL (D19, D22)</td><td>Garantir l’intégrité même si un autre programme écrit dans la base.</td><td>Contraintes <code>CHECK</code>, <code>UNIQUE</code>, clé composite, <code>NUMERIC(4,2)</code> exact. Écarté : SQLite, plus permissif sur les types.</td><td>Docker est nécessaire en local, y compris pour les tests du backend.</td></tr>
-      <tr><td>ETL séparé (D15)</td><td>Isoler pandas, lourd, de l’API.</td><td>Dossier <code>etl/</code> avec son environnement, CSV intermédiaire relisible.</td><td>Deux environnements Python ; l’import fait confiance au CSV qu’on lui donne.</td></tr>
-      <tr><td>Import dans le backend (D24)</td><td>Réutiliser les modèles ; jamais d’écrasement silencieux.</td><td>Conflit affiché, import entier refusé, aucun écrit.</td><td>Un fichier NOAA révisé sera refusé tant qu’une règle de révision n’existe pas.</td></tr>
-      <tr><td>API versionnée (D25)</td><td>Un contrat stable pour le frontend.</td><td>Préfixe <code>/api/v1</code>, paramètres obligatoires, bornes incluses, série et unité dans la réponse.</td><td>Une seule série servie ; pas de pagination (921 lignes au plus).</td></tr>
-      <tr><td>URL relative et proxy (D05)</td><td>Pas de CORS à ouvrir.</td><td>Le navigateur appelle <code>/api</code> sur son origine ; Vite, puis Caddy en cible, transmettent à l’API.</td><td>En production, le reverse proxy devient indispensable.</td></tr>
-      <tr><td>Courbe SVG sans bibliothèque (D27)</td><td>Courbe accessible au clavier, testable sans navigateur.</td><td>SVG écrit dans <code>OniChart.tsx</code>, curseur ARIA, tableau équivalent.</td><td>Pas de zoom ; graduations simples ; plus de code à maintenir.</td></tr>
+      <tr><td>PostgreSQL (D19, D22)</td><td>Intégrité garantie, même si un autre programme écrit</td><td>SQLite ; fichiers CSV seuls</td><td><code>CHECK</code>, <code>UNIQUE</code>, clé composite, <code>NUMERIC(4,2)</code> exact ; même moteur en local et en cible</td><td>Docker nécessaire, y compris pour les tests</td><td>15 tests du schéma ; doublon venant d’un autre import refusé</td></tr>
+      <tr><td>ETL séparé (D15)</td><td>Isoler pandas de l’API</td><td>Transformer dans l’API ; importer le fichier brut directement</td><td>Dossier <code>etl/</code>, CSV relisible et identique d’une exécution à l’autre</td><td>Deux environnements Python ; l’import fait confiance au CSV</td><td>28 tests ; même empreinte du CSV à chaque exécution</td></tr>
+      <tr><td>Import sans écrasement (D24)</td><td>Ne jamais modifier une valeur en silence</td><td>Écraser ; ignorer la ligne</td><td>Conflit affiché, import entier refusé, rien n’est écrit</td><td>Un fichier NOAA révisé sera refusé</td><td>8 tests ; second import réel : 0 ajout</td></tr>
+      <tr><td>API versionnée (D25)</td><td>Contrat stable pour le frontend</td><td>Paramètres facultatifs ; bornes exclues ; liste seule</td><td><code>/api/v1</code>, <code>start</code> et <code>end</code> obligatoires, bornes incluses, unité et source dans la réponse</td><td>Une seule série ; pas de pagination</td><td>10 tests : période, 422, 404, 503</td></tr>
+      <tr><td>Docker Compose (D19, D08)</td><td>Même pile en local et en production, sans coût</td><td>Installation directe sur le serveur ; orchestrateur (Kubernetes)</td><td>Un fichier, deux réseaux, un seul port public via Caddy</td><td>Un seul serveur, pas de haute disponibilité</td><td>Base locale sous Compose ; sauvegarde et restauration testées</td></tr>
+      <tr><td>Graphique accessible (D27)</td><td>Lecture au clavier ; tests sans navigateur</td><td>Chart.js (canvas) ; Recharts</td><td>SVG écrit à la main, curseur ARIA, tableau équivalent</td><td>Pas de zoom ; plus de code à maintenir</td><td>Test au clavier ; contrastes calculés ; 390 px mesurés</td></tr>
+      <tr><td>Traçabilité (D11, D21, D23)</td><td>Relier chaque valeur à son fichier</td><td>Provenance décrite dans un README seulement</td><td>Fichier brut versionné, fiche JSON contrôlée, ligne d’origine par observation</td><td>Fiche écrite à la main, recontrôlée par l’empreinte</td><td>Requête SQL : NDJ 2015 → ligne 793 du fichier</td></tr>
     </tbody>
   </table>
   <div class="decision">
@@ -747,6 +759,7 @@
       <tr><td>15 nov.</td><td>Interface, comparaison et 12 tests Vitest</td><td>Claude</td></tr>
       <tr><td>16 nov.</td><td>Revérification complète sur les vraies données, dossier de conception</td><td>Claude</td></tr>
       <tr><td>17 nov.</td><td>Rejeu complet depuis un clone propre du dépôt, finalisation du dossier</td><td>Claude</td></tr>
+      <tr><td>19 nov.</td><td>Identité visuelle de l’interface, linter Python, argumentation complétée dans le dossier</td><td>Claude</td></tr>
     </tbody>
   </table>
   <p>Le projet a avancé par étapes validées, chacune lancée par un cahier des charges de l’étudiant et close par des commits
@@ -757,8 +770,8 @@
   <h2 style="margin-top:0">5.4 Outils et suivi</h2>
   <ul>
     <li><strong>Git et GitHub</strong> : commits atomiques, publication seulement après accord explicite, vérification du SHA local et distant après chaque push (<code>docs/GIT.md</code>).</li>
-    <li><strong>Suivi</strong> : <code>docs/PLAN.md</code> (plan et risques), <code>docs/DECISIONS.md</code> (D01 à D31), <code>docs/JOURNAL.md</code> (travail réel, erreurs, vérifications, contributions de l’IA).</li>
-    <li><strong>Environnement</strong> : Windows 11, PowerShell, Docker Desktop, Node 22, Python 3.13 ; environnements Python séparés pour l’API et l’ETL.</li>
+    <li><strong>Suivi</strong> : <code>docs/PLAN.md</code> (plan et risques), <code>docs/DECISIONS.md</code> (D01 à D33), <code>docs/JOURNAL.md</code> (travail réel, erreurs, vérifications, contributions de l’IA).</li>
+    <li><strong>Environnement</strong> : Windows 11, PowerShell, Docker Desktop, Node 22, Python 3.13 ; environnements Python séparés pour l’API et l’ETL. <strong>Qualité</strong> : ESLint pour le frontend, ruff pour le Python (D33).</li>
     <li><strong>IA</strong> : Codex (4 et 8 novembre), puis Claude Code (à partir du 9 novembre). Détail en § 8.</li>
   </ul>
 
@@ -796,14 +809,14 @@
 <section class="chapter">
   <h1>6. Qualité et sécurité</h1>
 
-  <h2>6.1 Tests exécutés <span class="tag ok">Vérifié le 17 nov. 2026, sur un clone propre</span></h2>
+  <h2>6.1 Tests exécutés <span class="tag ok">Vérifié le 19 nov. 2026</span></h2>
   <table>
     <thead><tr><th style="width:22%">Test exigé par le sujet</th><th style="width:28%">Fichier</th><th>Commande, depuis la racine du dépôt</th><th style="width:15%">Résultat</th></tr></thead>
     <tbody>
-      <tr><td>Transformation des données</td><td><code>etl/tests/test_transform_oni.py</code></td><td><code>.\etl\.venv\Scripts\python.exe -m pytest etl/tests -q</code></td><td>28 passed (1,1 s)</td></tr>
-      <tr><td>API filtrée : période valide et entrée invalide</td><td><code>backend/tests/test_observations_api.py</code></td><td>depuis <code>backend</code> : <code>.\.venv\Scripts\python.exe -m pytest tests/test_observations_api.py</code></td><td>10 passed (3,1 s)</td></tr>
-      <tr><td>Frontend : changement de période</td><td><code>frontend/src/App.test.tsx</code></td><td><code>npm.cmd --prefix frontend test</code></td><td>12 passed (4,4 s)</td></tr>
-      <tr><td>Backend complet : santé, schéma, import, route</td><td><code>backend/tests/</code></td><td>depuis <code>backend</code> : <code>.\.venv\Scripts\python.exe -m pytest -q -W error</code></td><td>34 passed (3,4 s)</td></tr>
+      <tr><td>Transformation des données</td><td><code>etl/tests/test_transform_oni.py</code></td><td><code>.\etl\.venv\Scripts\python.exe -m pytest etl/tests -q</code></td><td>28 passed (2,7 s)</td></tr>
+      <tr><td>API filtrée : période valide et entrée invalide</td><td><code>backend/tests/test_observations_api.py</code></td><td>depuis <code>backend</code> : <code>.\.venv\Scripts\python.exe -m pytest tests/test_observations_api.py</code></td><td>10 passed (2,9 s)</td></tr>
+      <tr><td>Frontend : changement de période</td><td><code>frontend/src/App.test.tsx</code></td><td><code>npm.cmd --prefix frontend test</code></td><td>15 passed (4,9 s)</td></tr>
+      <tr><td>Backend complet : santé, schéma, import, route</td><td><code>backend/tests/</code></td><td>depuis <code>backend</code> : <code>.\.venv\Scripts\python.exe -m pytest -q -W error</code></td><td>34 passed (3,3 s)</td></tr>
     </tbody>
   </table>
   <ul>
@@ -816,8 +829,8 @@
   <ul>
     <li><strong>Clavier</strong> : formulaire natif ; courbe en <code>role="slider"</code> (flèches, Pg↑, Pg↓, Début, Fin) avec <code>aria-valuetext</code> ; tableau dans un <code>&lt;details&gt;</code> ; contour de focus de 3 px. Vérifié dans Chrome le 15 novembre.</li>
     <li><strong>Graphique accessible</strong> : le SVG est décoratif pour les lecteurs d’écran ; ils lisent la saison sélectionnée, le résumé et le tableau.</li>
-    <li><strong>Contrastes</strong>, calculés par la formule WCAG : textes de 5,30:1 à 12,17:1, bordures des champs 4,06:1, seuils et focus au-delà de 5,3:1.</li>
-    <li><strong>Responsive</strong> : à 390 px de large, aucun défilement horizontal (mesuré le 15 novembre).</li>
+    <li><strong>Contrastes</strong>, calculés par la formule WCAG le 19 novembre : textes de 5,53:1 à 14,66:1, bordures des champs 4,01:1, focus de 4,22:1 à 7,32:1, seuils et courbe au-delà de 6,1:1.</li>
+    <li><strong>Responsive</strong> : à 390 px de large, aucun défilement horizontal (mesuré le 19 novembre). <strong>Couleur</strong> : la légende de la bande nomme le bleu et le rouge, l’information ne repose pas sur la seule couleur.</li>
     <li><strong>États</strong> : chargement, période vide, dates inversées, API injoignable (502), base indisponible (503), délai dépassé.</li>
     <li><strong>Non vérifié</strong> : téléphone réel et lecteur d’écran réel.</li>
   </ul>
@@ -846,7 +859,7 @@
 
   <h2>6.5 Performance</h2>
   <p>921 lignes au plus par réponse, servies par l’index <code>(climate_index_id, reference_month)</code> ; aucune pagination nécessaire.
-    Page livrée : 237,93 kB de JavaScript (75,28 kB compressés) et 4,79 kB de CSS (build du 17 novembre). Délais maîtrisés :
+    Page livrée : 239,66 kB de JavaScript (75,78 kB compressés) et 7,43 kB de CSS (build du 19 novembre), sans police ni bibliothèque téléchargée. Délais maîtrisés :
     5 s pour la connexion à la base, 10 s pour une requête du navigateur.</p>
 
   <h2>6.6 Traitement des anomalies rencontrées</h2>
@@ -1070,7 +1083,7 @@ docker compose -f compose.prod.yaml exec -T db pg_restore -U enso -d enso_monito
     <thead><tr><th style="width:16%">Qui</th><th>Contribution</th></tr></thead>
     <tbody>
       <tr><td>Codex (4 et 8 nov.)</td><td>Lecture et synthèse du sujet ; organisation du dépôt ; code initial (page React, route de santé et son test) ; configuration ; documentation ; commits du 8 novembre.</td></tr>
-      <tr><td>Claude Code (9 au 17 nov.)</td><td>Lecture des sources NOAA, téléchargement et contrôles du fichier ; transformation et tests ; schéma, migration, import, API et tests ; interface, comparaison et tests ; démonstrations et vérifications, dont le rejeu depuis un clone propre ; rédaction de ce dossier et de ses schémas.</td></tr>
+      <tr><td>Claude Code (9 au 19 nov.)</td><td>Lecture des sources NOAA, téléchargement et contrôles du fichier ; transformation et tests ; schéma, migration, import, API et tests ; interface, identité visuelle, comparaison et tests ; démonstrations et vérifications, dont le rejeu depuis un clone propre ; rédaction de ce dossier et de ses schémas.</td></tr>
       <tr><td>Étudiant</td><td>Choix de l’ONI (D02) ; cahier des charges de chaque étape ; validation des étapes et autorisation de chaque publication.</td></tr>
     </tbody>
   </table>
