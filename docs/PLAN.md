@@ -94,6 +94,9 @@ sujet, diagrammes alignés sur le code. Avant le rendu du 22 novembre :
 
 Le 17 novembre, le projet a été rejoué depuis un clone propre : installation,
 import, trois tests, build, API et interface fonctionnent ; PDF de 15 pages.
+Le 19 novembre : contrôle de conformité au sujet, identité visuelle de
+l'interface (D32), linter Python (D33), argumentation du dossier complétée ;
+toujours 15 pages.
 
 ## Étape suivante
 

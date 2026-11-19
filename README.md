@@ -6,7 +6,12 @@ validation personnelle à chaque étape. Début : **4 novembre 2026**.
 Dépôt GitHub : [Hugodrc55/ENSO-Monitor](https://github.com/Hugodrc55/ENSO-Monitor),
 publié depuis le **10 novembre 2026**. Voir [le suivi Git](docs/GIT.md).
 
-## État au 17 novembre 2026
+## État au 19 novembre 2026
+
+**Identité visuelle** (19 novembre) : en-tête bleu abysse avec une bande des
+921 saisons, du bleu au rouge selon l'anomalie ; titres et chiffres en
+Bahnschrift. Contrastes WCAG AA vérifiés (décision D32). **Linter Python** :
+ruff, pour l'API et l'ETL (D33).
 
 **Dossier de conception** (livrable B, 15 pages) : source
 [`docs/dossier/dossier.html`](docs/dossier/README.md), export PDF par
@@ -293,6 +298,7 @@ Puis ouvrir <http://127.0.0.1:5173>.
 | Base arrêtée (`docker compose stop db`), puis redémarrée et « Réessayer » | « Chargement des observations… », puis « L'API répond, mais la base de données est indisponible. », puis retour des valeurs |
 | Section de comparaison | 12 saisons par épisode ; El Niño 1997-1998 : de +0,71 °C (AMJ 1997) à +2,37 °C (NDJ 1997) ; La Niña 1988-1989 : de −1,85 °C (NDJ 1988) à −0,85 °C (MAM 1989) ; 12 saisons d'affilée au-delà du seuil pour chacun |
 | Page affichée sur 390 px de large | Aucun défilement horizontal ; courbe de 309 px, graduations 1960 à 2020 |
+| En-tête, 19 novembre | Bande de 921 traits, de DJF 1950 à ASO 2026 ; au clavier, focus visible sur le lien et sur la courbe (Début : DJF 1950, −1,32 °C) |
 
 Un point de la courbe représente une saison glissante de trois mois, placée à son
 mois central, et non une mesure quotidienne. Les deux fenêtres comparées (mai à
@@ -306,10 +312,15 @@ Push-Location backend
 .\.venv\Scripts\python.exe -m pytest -q
 Pop-Location
 .\etl\.venv\Scripts\python.exe -m pytest etl/tests -q
+.\backend\.venv\Scripts\python.exe -m ruff check backend
+.\etl\.venv\Scripts\python.exe -m ruff check etl
 npm.cmd --prefix frontend run lint
 npm.cmd --prefix frontend test
 npm.cmd --prefix frontend run build
 ```
+
+ruff (configuration dans `ruff.toml`) contrôle le style et les erreurs probables
+du code Python ; les migrations générées par Alembic en sont exclues.
 
 Les tests du backend comprennent ceux du schéma, de l'import et de la route des
 observations. Ils exigent PostgreSQL démarré et la base `enso_monitor_test`,
@@ -336,9 +347,10 @@ Push-Location backend
 Pop-Location
 ```
 
-Dernière exécution complète, le 17 novembre 2026, sur un clone propre du dépôt :
-transformation **28 passed**, backend **34 passed** (dont la route filtrée,
-10 passed), frontend **12 passed** ; lint et build sans erreur.
+Dernière exécution complète, le 19 novembre 2026 : transformation **28 passed**,
+backend **34 passed** (dont la route filtrée, 10 passed), frontend **15 passed** ;
+ruff, ESLint et build sans erreur. Le 17 novembre, la même série avait été
+rejouée sur un clone propre du dépôt.
 
 `build` lance d'abord la vérification TypeScript stricte, puis Vite produit `frontend/dist/`.
 Pour consulter ce résultat localement, avec l'API toujours lancée :
@@ -365,7 +377,7 @@ Les trois tests exigés par le sujet :
 | --- | --- |
 | Transformation des données NOAA | Réalisé : `etl/tests/test_transform_oni.py`, 28 cas, dont le fichier NOAA réel |
 | Route API filtrée par période, avec entrée invalide | Réalisé : `backend/tests/test_observations_api.py`, 10 cas (période, bornes incluses, période vide, dates invalides, début après la fin, OpenAPI, 404, 503) |
-| Changement de période dans le frontend | Réalisé : `frontend/src/App.test.tsx`. Après saisie d'une nouvelle période, le test vérifie le résumé, la valeur lue sur la courbe (y compris au clavier) et les lignes du tableau. Quatre autres cas : dates inversées, période vide, erreur réseau, comparaison. `frontend/src/stats.test.ts` : 7 cas sur les calculs et le formatage |
+| Changement de période dans le frontend | Réalisé : `frontend/src/App.test.tsx`. Après saisie d'une nouvelle période, le test vérifie le résumé, la valeur lue sur la courbe (y compris au clavier) et les lignes du tableau. Quatre autres cas : dates inversées, période vide, erreur réseau, comparaison. `frontend/src/stats.test.ts` : 7 cas sur les calculs et le formatage ; `frontend/src/palette.test.ts` : 3 cas sur la couleur des anomalies |
 
 Le test de santé de l'API (`backend/tests/test_health.py`) ne remplace aucun d'eux.
 Planification : [PLAN.md](docs/PLAN.md).
@@ -377,9 +389,12 @@ frontend/                  React, TypeScript strict, Vite, ESLint et Vitest
   src/App.tsx              Page : en-tête, courbe, comparaison
   src/api.ts               Appel GET /api/v1/observations et contrôle du JSON reçu
   src/useObservations.ts   Chargement par période : annulation, délai, nouvelle tentative
+  src/period.ts            Période complète de la série, jusqu'à aujourd'hui
   src/format.ts            Dates, saisons et valeurs en °C à la française
   src/stats.ts             Seuil NOAA, résumé d'une période, plus longue suite au-delà du seuil
+  src/palette.ts           Couleur d'une anomalie, du bleu au rouge
   src/components/
+    OniStripes.tsx         Bande des saisons de l'en-tête
     PeriodFilter.tsx       Formulaire de période et contrôle des dates
     OniExplorer.tsx        États du chargement, résumé, courbe, source et tableau
     OniChart.tsx           Courbe SVG, sélection à la souris et au clavier
@@ -387,8 +402,9 @@ frontend/                  React, TypeScript strict, Vite, ESLint et Vitest
     EpisodeComparison.tsx  El Niño 1997-1998 et La Niña 1988-1989 côte à côte
   src/App.test.tsx         Parcours : changement de période, erreurs, comparaison
   src/stats.test.ts        Calculs et formatage
+  src/palette.test.ts      Couleur des anomalies
   src/main.tsx             Montage de React
-  src/styles.css           Présentation, responsive et focus visible
+  src/styles.css           Identité visuelle, responsive et focus visible
 backend/
   app/main.py              Application FastAPI, route santé, réponse 503 si base injoignable
   app/observations.py      Route GET /api/v1/observations et schémas de réponse
@@ -410,6 +426,7 @@ data/
   raw/                     Fichier NOAA brut daté, empreinte SHA-256 et provenance
   processed/               CSV produit par l'ETL (régénéré, non versionné)
 compose.yaml               Service PostgreSQL local
+ruff.toml                  Configuration du linter Python
 .env.example               Modèle de configuration locale (le vrai .env est exclu de Git)
 docs/
   DONNEES_NOAA.md          Source ONI ERSSTv6 : colonnes, saisons, limites, règles de transformation
@@ -456,6 +473,8 @@ choisi les deux épisodes et leurs fenêtres, écrit les tests Vitest et exécut
 démonstration, à partir du cahier des charges de l'étudiant.
 Le 16 novembre, Claude a revérifié le MVP sur les données réelles et rédigé le
 dossier de conception, ses diagrammes et son script d'export.
+Le 19 novembre, à la demande de l'étudiant, Claude a conçu l'identité visuelle de
+l'interface, ajouté le linter ruff et complété l'argumentation du dossier.
 Ces contributions sont détaillées dans le journal. La compréhension personnelle
 et la validation par l'étudiant restent à confirmer ; elles ne sont pas déduites
 du code généré ou des tests réussis.

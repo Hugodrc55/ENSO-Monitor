@@ -22,6 +22,8 @@
   (`12c1652..60a1941`) ; SHA local et distant identiques, `60a1941`.
 - **Push du 16 novembre 2026** : les quatre commits du dossier de conception ont
   été publiés (`60a1941..d7aa6b6`) ; SHA local et distant identiques, `d7aa6b6`.
+- **Push du 17 novembre 2026** : les trois commits du rejeu ont été publiés
+  (`d7aa6b6..685bc98`) ; SHA local et distant identiques, `685bc98`.
 - Chaque publication suit un accord explicite de l'étudiant.
 
 ## Commits du Jour 1
@@ -127,6 +129,16 @@ Le PDF du dossier (`docs/dossier/*.pdf`) est exclu de Git : il se régénère av
 | Dates du dossier après le rejeu | `docs/dossier/dossier.html` | `docs: dater le dossier du rejeu sur un clone propre` |
 | Données et port dans le README | `README.md` | `docs: préciser les données versionnées et le port PostgreSQL` |
 | Suivi | `docs/GIT.md`, `docs/JOURNAL.md`, `docs/PLAN.md` | `docs: consigner le rejeu et la version à rendre` |
+
+## Commits du 19 novembre 2026
+
+| Ensemble cohérent | Fichiers | Message |
+| --- | --- | --- |
+| Identité visuelle | `frontend/index.html`, `frontend/src/` (sauf les tests) | `feat: donner une identité visuelle à l'interface` |
+| Test de la couleur des anomalies | `frontend/src/palette.test.ts` | `test: tester la couleur des anomalies` |
+| Linter Python | `ruff.toml`, `backend/requirements-dev.txt`, `etl/requirements-dev.txt`, `backend/tests/` | `chore: ajouter le linter ruff et corriger ses alertes` |
+| Dossier | `docs/dossier/` | `docs: mettre le dossier au nouveau design et compléter l'argumentation` |
+| Suivi | `README.md`, `docs/` | `docs: consigner la conformité, le design et le linter` |
 
 ## Version à rendre
 

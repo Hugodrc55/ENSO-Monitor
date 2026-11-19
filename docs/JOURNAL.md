@@ -954,3 +954,119 @@ La compréhension et la validation personnelles de l'étudiant restent à confir
 Les quatre passages « À compléter » du dossier, que seul l'étudiant peut écrire :
 nom, arbitrages personnels, vérifications personnelles, retour d'expérience.
 Ensuite : réexporter, contrôler le nombre de pages et remettre le PDF.
+
+### Publication
+
+Après accord de l'étudiant, `git push` a publié les trois commits
+(`d7aa6b6..685bc98 main -> main`). `git rev-parse HEAD` et
+`git ls-remote origin refs/heads/main` renvoyaient tous deux
+`685bc9834fd19f1442a3a2c1e350bfe848f14f9f`.
+
+## 19 novembre 2026 — Conformité au sujet, identité visuelle et linter Python
+
+### Demande
+
+L'étudiant a demandé si tout le sujet était respecté et une interface au design
+plus original, à condition qu'elle reste correcte.
+
+### Contrôle de conformité
+
+Le sujet a été relu en entier et confronté au dépôt. Les quatre fonctionnalités du
+MVP, les exigences d'interface, la pile, les trois tests, les huit sections du
+dossier, les diagrammes et le déploiement documenté sont couverts.
+
+Trois écarts ont été relevés :
+
+| Écart | Traitement |
+| --- | --- |
+| « Linting » : seul le frontend avait un linter | ruff ajouté pour l'API et l'ETL (D33) |
+| Argumentation du dossier : besoin, choix et limite seulement ; ni options envisagées ni vérification | Tableau 4.5 refait avec les six éléments, pour les choix cités par le sujet |
+| Retour d'expérience et passages personnels du dossier | Non traités : ils reviennent à l'étudiant |
+
+NumPy est bien utilisé par la transformation (`np.isfinite`).
+
+### Identité visuelle (D32)
+
+- **En-tête et palette** : en-tête bleu abysse avec une bande des saisons
+  (`OniStripes.tsx`), colorée par `anomalyColor` (`palette.ts`). Palette océan,
+  Bahnschrift pour les titres et les chiffres.
+- **Mise en page** : la comparaison est ouverte sous un filet, avec ses colonnes
+  aux couleurs de leur épisode. L'étiquette en capitales au-dessus du titre et
+  le pied de page à points médians ont été retirés.
+- **Code** : la période complète est partagée dans `period.ts`. Les valeurs
+  extrêmes du résumé sont présentées en deux parties ; leur texte ne change pas.
+- **Corrections après relecture visuelle** :
+  - titre coupé avec « 1950 » seul sur une ligne ;
+  - résumé sur une seule colonne à 390 px ;
+  - fin de la bande mal placée sur mobile ;
+  - légende qui ne nommait pas les couleurs pour les lecteurs d'écran.
+
+### Linter Python (D33)
+
+- Premier passage de ruff : 26 alertes, dont 18 dans la migration générée par
+  Alembic, qui a été exclue.
+- Les 8 autres alertes ont été corrigées automatiquement : imports et
+  `datetime.UTC`.
+- ruff rangeait au départ le paquet `app` parmi les bibliothèques externes, puis
+  `alembic` parmi le code du projet, à cause du dossier `backend/alembic/`. La
+  configuration (`src`, `known-third-party`) corrige ces deux classements.
+- Au final, seuls trois fichiers de tests changent, et uniquement pour
+  `datetime.UTC`.
+
+### Dossier
+
+- **Maquettes** : la bande d'en-tête y figure, avec des traits calculés à partir
+  des vraies valeurs du CSV. Neuf repères au lieu de huit ; la comparaison est
+  sous un filet.
+- **Capture** : la figure 2 est remplacée par une capture réelle du 19 novembre.
+  Les captures du 16 novembre sont retirées.
+- **Mises à jour** :
+  - tableau 4.5 ;
+  - contrastes et poids de la page ;
+  - résultats des tests ;
+  - historique, outils et déclaration de l'IA.
+- **Export** : **15 pages**, comptées par le script et par le moteur PDF de
+  Windows. Chaque section commence à la page du sommaire, et les pages 4 et 8 ont
+  été contrôlées.
+
+### Vérifications réelles
+
+| Vérification exécutée | Résultat observé |
+| --- | --- |
+| `pytest etl/tests -q` | **28 passed** |
+| `pytest tests/test_observations_api.py -q` depuis `backend` | **10 passed** |
+| `pytest -q -W error` depuis `backend` | **34 passed** |
+| `npm.cmd --prefix frontend test` | **15 passed** (12 existants, sans modification, et 3 nouveaux) |
+| `ruff check backend`, `ruff check etl` | « All checks passed! » |
+| `npm run lint`, `npm run build` | Sans erreur ; JavaScript 239,66 kB (75,78 kB gzip), CSS 7,43 kB |
+| Chrome, API et base réelles : mesure à 1280, 390 et 320 px | Aucun débordement à 1280 et 390 px ; à 320 px, seulement les 15 px de la barre de défilement de Windows, comme avant ; résumé sur 5 puis 2 colonnes |
+| Bande d'en-tête | 921 traits ; « DJF 1950 » et « ASO 2026 » aux deux extrémités, à 1280 et 390 px |
+| Clavier | Focus de 3 px, orange vif sur le lien de l'en-tête, orange « bouée » sur la courbe ; Début : « DJF 1950 (déc. 1949 – févr. 1950) : −1,32 °C » |
+| Contrastes (formule WCAG) | Textes de 5,53:1 à 14,66:1 ; focus de 4,22:1 à 7,32:1 ; bordures des champs 4,01:1 ; 19 paires conformes |
+
+Non vérifié : téléphone réel et lecteur d'écran réel. L'extension Chrome n'a
+toujours pas pu prendre de capture d'écran ; le rendu mobile a été contrôlé par
+mesure du DOM et par une capture sans interface à 500 px.
+
+### Git
+
+Cinq commits à la date réelle de la session (détail dans [GIT.md](GIT.md)).
+
+### Contributions de l'IA
+
+**Fourni par l'étudiant** : la demande de contrôle de conformité et d'un design
+plus original.
+
+**Réalisé par Claude** :
+- le contrôle de conformité ;
+- le design et le code de l'interface ;
+- ruff et sa configuration ;
+- les mises à jour du dossier et de la documentation ;
+- les vérifications.
+
+La compréhension et la validation personnelles de l'étudiant restent à confirmer.
+
+### Reste avant le rendu
+
+Les quatre passages « À compléter » du dossier : nom, arbitrages personnels,
+vérifications personnelles, retour d'expérience.

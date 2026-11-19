@@ -404,3 +404,38 @@ restent à confirmer. Aucune validation orale n'est supposée.
   - l'export dépend d'un navigateur Chromium récent ;
   - éditer du SVG à la main est plus long qu'avec un outil de diagrammes.
 - **Vérification** : le 16 novembre, 15 pages comptées par le script et par le moteur PDF de Windows ; chaque page a été affichée pour contrôler la lisibilité des schémas et le début des sections.
+
+## D32 — Identité visuelle : l'océan et ses anomalies
+
+- **Besoin** : une interface reconnaissable, liée au sujet, sans perdre en lisibilité ni en accessibilité, et sans ajouter de dépendance.
+- **Options** : garder la présentation neutre d'origine ; une bibliothèque de composants ou un thème tout fait ; une identité propre au sujet.
+- **Choix** :
+  - **en-tête bleu abysse** portant le titre et une **bande des saisons** : un trait par saison de la série, du bleu au rouge selon l'anomalie (`OniStripes.tsx`, couleur calculée par `anomalyColor` dans `palette.ts`). La légende nomme les couleurs, pour ne pas reposer sur la couleur seule ;
+  - **palette** : abysse `#0d2b3e`, écume `#eef3f4`, rouge El Niño `#b3321f`, bleu La Niña `#1f5f9e`, orange « bouée » `#b35c00` pour le focus et le curseur de la courbe ;
+  - **typographie** : Bahnschrift, police DIN fournie avec Windows, pour les titres et les chiffres ; Segoe UI pour le texte. Aucune police n'est téléchargée : sur un autre système, des polices proches prennent le relais ;
+  - l'explorateur reste un panneau blanc ; la comparaison est ouverte sous un filet, et ses colonnes portent la couleur de leur épisode.
+- **Avantage** : la bande montre d'un coup d'œil l'alternance des épisodes depuis 1950, à partir des vraies données. La structure de la page, les textes et les rôles ARIA sont inchangés : les 12 tests existants passent sans modification.
+- **Limite** :
+  - la bande est une vue d'ensemble : les valeurs exactes se lisent dans la courbe et le tableau ;
+  - elle déclenche une requête de plus au chargement, pour la série complète ;
+  - hors de Windows, le rendu des titres dépend de la police de remplacement disponible.
+- **Vérification** (19 novembre) :
+  - contrastes WCAG calculés : textes de 5,53:1 à 14,66:1, focus de 4,22:1 à 7,32:1, bordures des champs 4,01:1 ;
+  - aucun défilement horizontal à 1280 et 390 px ;
+  - focus visible au clavier sur le lien de l'en-tête et sur la courbe ;
+  - 3 tests de `anomalyColor`, 15 tests frontend passés.
+
+## D33 — Linter Python ruff
+
+- **Besoin** : le sujet demande du linting ; seul le frontend en avait (ESLint).
+- **Options** : flake8 avec isort (deux outils) ; pylint (plus lent, plus bavard) ; ruff (un seul outil, rapide).
+- **Choix** : `ruff==0.17.6` dans les dépendances de développement de l'API et de l'ETL, avec `ruff.toml` à la racine.
+  - règles : style PEP 8, erreurs probables, ordre des imports, pièges courants, syntaxe à jour ;
+  - lignes de 99 caractères, la limite déjà suivie par le code ;
+  - migrations générées par Alembic exclues.
+- **Avantage** : une seule commande par environnement ; les erreurs probables (nom inconnu, import inutile) sont signalées avant l'exécution.
+- **Limite** : la migration exclue n'est pas contrôlée ; le formatage automatique (`ruff format`) n'est pas imposé.
+- **Vérification** :
+  - premier passage : 26 alertes, dont 18 dans la migration générée ;
+  - après exclusion de la migration et correction automatique des imports et de `datetime.UTC` dans trois fichiers de tests : « All checks passed! » pour `backend` et pour `etl` ;
+  - 34 tests backend et 28 tests ETL passés ensuite.
