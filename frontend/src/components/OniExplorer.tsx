@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import type { ObservationsResponse, Period } from '../api'
+import type { Observation, ObservationsResponse, Period } from '../api'
 import { NBSP, formatDate, formatOni, formatSigned, plural, seasonLabel } from '../format'
+import { fullSeriesPeriod } from '../period'
 import { NOAA_THRESHOLD, summarize } from '../stats'
 import { useObservations, type ObservationsState } from '../useObservations'
 import { ObservationsTable } from './ObservationsTable'
@@ -10,23 +11,14 @@ import { PeriodFilter } from './PeriodFilter'
 export const NOAA_ONI_PAGE =
   'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/oni/v6/index.php'
 
-/** Toute la série par défaut : la première saison, DJF 1950, a pour mois central janvier 1950. */
-function defaultPeriod(): Period {
-  const today = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return {
-    start: '1950-01-01',
-    end: `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`,
-  }
-}
-
 /** Courbe filtrable : le formulaire change la période, qui déclenche un nouvel appel à l'API. */
 export function OniExplorer() {
-  const [period, setPeriod] = useState<Period>(defaultPeriod)
+  // Toute la série par défaut.
+  const [period, setPeriod] = useState<Period>(fullSeriesPeriod)
   const { state, retry } = useObservations(period)
 
   return (
-    <section className="card" aria-labelledby="explorer-title" aria-busy={state.status === 'loading'}>
+    <section className="panel" aria-labelledby="explorer-title" aria-busy={state.status === 'loading'}>
       <h2 id="explorer-title">Anomalie ONI par saison</h2>
       <PeriodFilter initial={period} onApply={setPeriod} />
 
@@ -78,13 +70,13 @@ function Result({ data }: { data: ObservationsResponse }) {
             <div>
               <dt>Anomalie la plus élevée</dt>
               <dd>
-                {formatOni(summary.highest.oni, series.unit)} ({seasonLabel(summary.highest)})
+                <Extreme observation={summary.highest} unit={series.unit} />
               </dd>
             </div>
             <div>
               <dt>Anomalie la plus basse</dt>
               <dd>
-                {formatOni(summary.lowest.oni, series.unit)} ({seasonLabel(summary.lowest)})
+                <Extreme observation={summary.lowest} unit={series.unit} />
               </dd>
             </div>
           </dl>
@@ -123,6 +115,16 @@ function Result({ data }: { data: ObservationsResponse }) {
       </p>
 
       {summary !== null && <ObservationsTable observations={observations} unit={series.unit} />}
+    </>
+  )
+}
+
+/** « +2,59 °C (NDJ 2015) » : la valeur en grand, la saison en plus petit. */
+function Extreme({ observation, unit }: { observation: Observation; unit: string }) {
+  return (
+    <>
+      <span className="summary-value">{formatOni(observation.oni, unit)}</span>{' '}
+      <span className="summary-detail">({seasonLabel(observation)})</span>
     </>
   )
 }

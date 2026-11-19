@@ -10,6 +10,8 @@ type Episode = {
   beyond: (value: number) => boolean
   /** Seuil affiché, sans unité. */
   threshold: string
+  /** Couleur de la colonne : chaude pour El Niño, froide pour La Niña. */
+  tone: 'warm' | 'cool'
 }
 
 /*
@@ -22,12 +24,14 @@ export const EL_NINO: Episode = {
   period: { start: '1997-05-01', end: '1998-04-01' },
   beyond: isWarm,
   threshold: `≥ ${formatSigned(NOAA_THRESHOLD, 1)}`,
+  tone: 'warm',
 }
 export const LA_NINA: Episode = {
   title: 'La Niña 1988-1989',
   period: { start: '1988-05-01', end: '1989-04-01' },
   beyond: isCold,
   threshold: `≤ ${formatSigned(-NOAA_THRESHOLD, 1)}`,
+  tone: 'cool',
 }
 
 type Analysis = {
@@ -83,7 +87,7 @@ export function EpisodeComparison() {
   }
 
   return (
-    <section className="card" aria-labelledby="comparison-title" aria-busy={loading}>
+    <section className="report" aria-labelledby="comparison-title" aria-busy={loading}>
       <h2 id="comparison-title">Deux épisodes comparés</h2>
       <p>
         <strong>Pourquoi ces périodes ?</strong> Ce sont deux épisodes marqués de la série, à neuf
@@ -143,7 +147,7 @@ function ComparisonResult({ warm, cold, unit }: { warm: Analysis; cold: Analysis
             <tr>
               <th scope="col">Indicateur</th>
               {columns.map(([episode]) => (
-                <th scope="col" key={episode.title}>
+                <th scope="col" key={episode.title} className={`episode episode-${episode.tone}`}>
                   {episode.title}
                 </th>
               ))}
@@ -154,7 +158,9 @@ function ComparisonResult({ warm, cold, unit }: { warm: Analysis; cold: Analysis
               <tr key={row.label}>
                 <th scope="row">{row.label}</th>
                 {columns.map(([episode, analysis]) => (
-                  <td key={episode.title}>{row.cell(episode, analysis)}</td>
+                  <td key={episode.title} className={`episode-${episode.tone}`}>
+                    {row.cell(episode, analysis)}
+                  </td>
                 ))}
               </tr>
             ))}
