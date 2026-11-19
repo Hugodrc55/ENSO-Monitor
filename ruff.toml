@@ -1,0 +1,17 @@
+# Linter Python commun à l'API (backend/) et à l'ETL (etl/).
+# Commandes : README, section « Vérifications ».
+line-length = 99
+target-version = "py313"
+# Code du projet : le paquet app (dans backend/) et le paquet etl (à la racine).
+src = ["backend", "."]
+# Migrations générées par Alembic et déjà appliquées : gardées telles quelles.
+extend-exclude = ["backend/alembic/versions"]
+
+[lint]
+# E, W : style PEP 8 ; F : erreurs probables (nom inconnu, import inutile) ;
+# I : ordre des imports ; B : pièges courants ; UP : syntaxe Python à jour.
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[lint.isort]
+# Le dossier backend/alembic/ (migrations) porte le nom de la bibliothèque Alembic.
+known-third-party = ["alembic"]

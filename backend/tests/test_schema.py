@@ -5,7 +5,7 @@ définies dans conftest.py. Les lignes insérées sont FICTIVES : ce ne sont pas
 des observations NOAA.
 """
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
@@ -17,7 +17,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import ClimateIndex, DataImport, Observation, Source
-
 
 # --- Données fictives ----------------------------------------------------------
 
@@ -42,7 +41,7 @@ def add_import(session: Session, index: ClimateIndex, sha256: str) -> DataImport
         file_name="fichier-fictif.txt",
         source_url="https://example.org/fichier-fictif.txt",
         sha256=sha256,
-        downloaded_at=datetime(2026, 11, 9, 13, 42, tzinfo=timezone.utc),
+        downloaded_at=datetime(2026, 11, 9, 13, 42, tzinfo=UTC),
         version_evidence="Fichier fictif créé par les tests",
     )
     session.add(data_import)

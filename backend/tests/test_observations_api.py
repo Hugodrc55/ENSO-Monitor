@@ -6,7 +6,7 @@ enregistrées sous le code de la série servie par l'API.
 
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
@@ -49,7 +49,7 @@ def client(session: Session) -> Iterator[TestClient]:
         file_name="fictif.txt",
         source_url="https://example.org/fictif.txt",
         sha256="a" * 64,
-        downloaded_at=datetime(2026, 11, 9, 13, 42, 35, tzinfo=timezone.utc),
+        downloaded_at=datetime(2026, 11, 9, 13, 42, 35, tzinfo=UTC),
         version_evidence="Preuve fictive",
     )
     fictive = [  # saison, année, date de référence, ANOM

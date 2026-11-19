@@ -7,7 +7,7 @@ provenance et CSV inventés pour les tests, pas des observations NOAA.
 import csv
 import hashlib
 import json
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -69,7 +69,7 @@ def test_first_import_stores_observations_and_provenance(session: Session, tmp_p
     assert (report.inserted, report.unchanged, report.new_import) == (3, 0, True)
     data_import = session.get(DataImport, report.data_import_id)
     assert data_import.file_name == "fictif.txt"
-    assert data_import.downloaded_at == datetime(2026, 11, 9, 13, 42, 35, tzinfo=timezone.utc)
+    assert data_import.downloaded_at == datetime(2026, 11, 9, 13, 42, 35, tzinfo=UTC)
     assert data_import.climate_index.version == "version fictive"
     first = session.scalar(select(Observation).where(Observation.season == "DJF"))
     assert first.reference_month == date(2000, 1, 1)
