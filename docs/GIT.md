@@ -134,11 +134,18 @@ Le PDF du dossier (`docs/dossier/*.pdf`) est exclu de Git : il se régénère av
 
 | Ensemble cohérent | Fichiers | Message |
 | --- | --- | --- |
-| Identité visuelle | `frontend/index.html`, `frontend/src/` (sauf les tests) | `feat: donner une identité visuelle à l'interface` |
+| Identité visuelle | `frontend/index.html`, `frontend/src/` (sauf les tests) ; par erreur, aussi la suppression des deux captures du 16 novembre | `feat: donner une identité visuelle à l'interface` |
 | Test de la couleur des anomalies | `frontend/src/palette.test.ts` | `test: tester la couleur des anomalies` |
 | Linter Python | `ruff.toml`, `backend/requirements-dev.txt`, `etl/requirements-dev.txt`, `backend/tests/` | `chore: ajouter le linter ruff et corriger ses alertes` |
 | Dossier | `docs/dossier/` | `docs: mettre le dossier au nouveau design et compléter l'argumentation` |
 | Suivi | `README.md`, `docs/` | `docs: consigner la conformité, le design et le linter` |
+
+Les deux captures du 16 novembre avaient été retirées avec `git rm`, ce qui les a
+placées dans l'index : le commit de l'identité visuelle a donc emporté leur
+suppression. Jusqu'au commit du dossier, `dossier.html` désigne ainsi deux images
+absentes ; l'état final est cohérent. L'historique n'a pas été réécrit. Le commit
+de l'identité visuelle, extrait seul dans une copie de travail isolée, passe le
+lint, les 12 tests de l'époque et le build.
 
 ## Version à rendre
 
